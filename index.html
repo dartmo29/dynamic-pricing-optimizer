@@ -6,9 +6,24 @@
     <title>Dynamic Pricing Optimizer</title>
     <meta name="description" content="A SaaS platform to help small businesses determine optimal pricing for their products or services" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Preload critical styles -->
+    <link rel="stylesheet" href="/src/index.css" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Loading state until React renders -->
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw;">
+        <div style="text-align: center;">
+          <h1 style="font-size: 1.5rem; color: #3b82f6; margin-bottom: 1rem;">Loading Dynamic Pricing Optimizer</h1>
+          <div style="display: inline-block; width: 2rem; height: 2rem; border: 0.25rem solid rgba(59, 130, 246, 0.3); border-radius: 50%; border-top-color: #3b82f6; animation: spin 1s linear infinite;"></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/index.jsx"></script>
+    <style>
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </body>
 </html>
