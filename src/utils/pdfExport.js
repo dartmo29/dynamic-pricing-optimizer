@@ -7,81 +7,62 @@
  */
 
 /**
- * Generate a pricing strategy PDF report
+ * Unified export function for PDF generation
+ * 
  * @param {Object} data The data to include in the PDF
- * @param {Object} data.costBreakdown Cost breakdown data
- * @param {Object} data.priceRecommendations Price recommendations by strategy
- * @param {string} data.selectedStrategy The currently selected strategy
- * @param {Array} data.competitors List of competitors
- * @param {Array} data.valueFactors List of value factors
- * @param {string} data.marketPosition Market position (budget, mid-market, premium)
- * @returns {Promise<string>} A message indicating success or failure
+ * @param {string} type The type of export (pricing, value, dashboard)
+ * @returns {boolean} Success status
  */
-export const exportPricingStrategyToPdf = (data) => {
-  return new Promise((resolve) => {
-    // Placeholder: In a real implementation, this would generate a PDF
-    console.log('Exporting pricing strategy to PDF:', data);
+export const exportToPdf = (data, type = 'pricing') => {
+  try {
+    console.log(`Preparing to export ${type} data to PDF`, data);
     
-    // Simulate processing time
-    setTimeout(() => {
-      resolve('PDF generated successfully! In a real implementation, this would download a PDF file.');
-    }, 1000);
-  });
+    // Create a timestamp for the filename
+    const timestamp = new Date().toISOString().replace(/:/g, '-').substring(0, 19);
+    let filename = '';
+    
+    // Different export handling based on type
+    switch (type) {
+      case 'pricing':
+        filename = `dynamic-pricing-optimizer-${timestamp}.pdf`;
+        console.log('Exporting pricing strategy data:', data?.pricingStrategy);
+        break;
+        
+      case 'value':
+        filename = `value-assessment-${timestamp}.pdf`;
+        console.log('Exporting value assessment data:', data?.valueAssessment);
+        break;
+        
+      case 'dashboard':
+        filename = `pricing-dashboard-${timestamp}.pdf`;
+        console.log('Exporting dashboard data');
+        break;
+        
+      default:
+        filename = `dpo-export-${timestamp}.pdf`;
+        console.log('Exporting general data');
+    }
+    
+    // Simulate PDF generation (in production, this would use a PDF library)
+    // For now, we'll just show an alert message
+    alert(`PDF export simulation: ${filename} would be generated and downloaded.\n\nIn a production environment, this would create an actual PDF document.`);
+    
+    return true;
+  } catch (error) {
+    console.error('Error exporting PDF:', error);
+    alert('Failed to export PDF. Please try again or check the console for details.');
+    return false;
+  }
 };
 
 /**
- * Generate a value assessment PDF report
- * @param {Object} data The data to include in the PDF
- * @param {Object} data.costBreakdown Cost breakdown data
- * @param {number} data.recommendedPrice The recommended price
- * @param {number} data.yourValueScore The calculated value score
- * @param {Array} data.competitors List of competitors
- * @param {Array} data.valueFactors List of value factors
- * @param {Object} data.customerValueInputs Customer value calculator inputs
- * @returns {Promise<string>} A message indicating success or failure
- */
-export const exportValueAssessmentToPdf = (data) => {
-  return new Promise((resolve) => {
-    // Placeholder: In a real implementation, this would generate a PDF
-    console.log('Exporting value assessment to PDF:', data);
-    
-    // Simulate processing time
-    setTimeout(() => {
-      resolve('Value assessment PDF generated successfully! In a real implementation, this would download a PDF file.');
-    }, 1000);
-  });
-};
-
-/**
- * Generate a comprehensive dashboard PDF report
- * @param {Object} data The data to include in the PDF
- * @param {Object} data.costBreakdown Cost breakdown data
- * @param {Object} data.priceRecommendations Price recommendations by strategy
- * @param {string} data.selectedStrategy The currently selected strategy
- * @param {Array} data.competitors List of competitors
- * @param {Array} data.valueFactors List of value factors
- * @param {Object} data.implementationGuidance Implementation guidance
- * @returns {Promise<string>} A message indicating success or failure
- */
-export const exportDashboardToPdf = (data) => {
-  return new Promise((resolve) => {
-    // Placeholder: In a real implementation, this would generate a PDF
-    console.log('Exporting dashboard to PDF:', data);
-    
-    // Simulate processing time
-    setTimeout(() => {
-      resolve('Dashboard PDF generated successfully! In a real implementation, this would download a PDF file.');
-    }, 1000);
-  });
-};
-
-/**
- * Placeholder function to prepare export data
+ * Prepare data for pricing export
+ * 
  * @param {Object} costAnalysis Cost analysis data
  * @param {Object} pricingStrategy Pricing strategy data
  * @returns {Object} Prepared data for PDF export
  */
-export const prepareExportData = (costAnalysis, pricingStrategy) => {
+export const preparePricingExport = (costAnalysis, pricingStrategy) => {
   return {
     costBreakdown: costAnalysis.costBreakdown,
     targetMargin: costAnalysis.targetMargin,
@@ -93,4 +74,47 @@ export const prepareExportData = (costAnalysis, pricingStrategy) => {
     implementationGuidance: pricingStrategy.implementationGuidance,
     generatedAt: new Date().toLocaleString()
   };
+};
+
+/**
+ * Prepare data for value assessment export
+ * 
+ * @param {Object} valueAssessment Value assessment data
+ * @returns {Object} Prepared data for PDF export
+ */
+export const prepareValueExport = (valueAssessment) => {
+  return {
+    competitors: valueAssessment.competitors,
+    valueProposition: valueAssessment.valueProposition,
+    valueMap: valueAssessment.valueMap,
+    communication: valueAssessment.communication,
+    generatedAt: new Date().toLocaleString()
+  };
+};
+
+/**
+ * Prepare data for dashboard export
+ * 
+ * @param {Object} costAnalysis Cost analysis data
+ * @param {Object} pricingStrategy Pricing strategy data
+ * @param {Object} valueAssessment Value assessment data (optional)
+ * @returns {Object} Prepared data for PDF export
+ */
+export const prepareDashboardExport = (costAnalysis, pricingStrategy, valueAssessment = null) => {
+  const data = {
+    costBreakdown: costAnalysis.costBreakdown,
+    targetMargin: costAnalysis.targetMargin,
+    priceRecommendations: pricingStrategy.priceRecommendations,
+    selectedStrategy: pricingStrategy.selectedStrategy,
+    marketPosition: pricingStrategy.marketPosition,
+    implementationGuidance: pricingStrategy.implementationGuidance,
+    generatedAt: new Date().toLocaleString()
+  };
+  
+  // Add value assessment data if available
+  if (valueAssessment) {
+    data.valueProposition = valueAssessment.valueProposition;
+  }
+  
+  return data;
 };
