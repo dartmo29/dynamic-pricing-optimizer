@@ -2,13 +2,14 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
-// Import our test apps
+// Import test apps
 // import TestApp from './TestApp';
-import SimpleApp from './SimpleApp';
-// Import the main App but don't use it initially
+// import SimpleApp from './SimpleApp';
+import GradualApp from './GradualApp';
+// Import the main App
 // import App from './App';
 
-console.log("Starting React initialization with SimpleApp...");
+console.log("Starting React initialization with GradualApp...");
 
 try {
   // Get the root element
@@ -20,18 +21,19 @@ try {
   // Create the React root
   const root = ReactDOM.createRoot(rootElement);
   
-  // Render the simple app to test with a more app-like structure
+  // Render the gradual app to test features incrementally
   root.render(
     <React.StrictMode>
+      <GradualApp />
+      {/* Other options:
       <SimpleApp />
-      {/* We'll switch back to these once we confirm SimpleApp is working:
       <TestApp />
       <App />
       */}
     </React.StrictMode>
   );
   
-  console.log("React initialization with SimpleApp completed successfully");
+  console.log("React initialization with GradualApp completed successfully");
 } catch (error) {
   console.error("Error during React initialization:", error);
   
