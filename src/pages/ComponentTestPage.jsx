@@ -8,6 +8,9 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
 
+// Import custom test components
+import ValueCommunicationTest from '../components/testing/ValueCommunicationTest';
+
 /**
  * ComponentTestPage
  * A page to test individual UI components in isolation
@@ -108,6 +111,14 @@ const ComponentTestPage = () => {
           console.log('Dialog component loaded successfully');
         } catch (error) {
           console.error('Failed to load Dialog component:', error);
+        }
+        
+        // Attempt to load ValueCommunication test component
+        try {
+          componentMap['ValueCommunication'] = () => <ValueCommunicationTest />;
+          console.log('ValueCommunication test component loaded successfully');
+        } catch (error) {
+          console.error('Failed to load ValueCommunication test component:', error);
         }
         
         // Set the available components
