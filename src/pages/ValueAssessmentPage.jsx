@@ -7,12 +7,15 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, ArrowLeft, BarChart, Calculator, FileText } from 'lucide-react';
-import { Link } from '@/components/ui/link';
+import { ArrowLeft, BarChart, Calculator } from 'lucide-react';
 
 // Value Assessment Components
 import ValueAssessmentMatrix from '../components/value-assessment/ValueAssessmentMatrix';
 import CustomerValueCalculator from '../components/value-assessment/CustomerValueCalculator';
+
+// PDF Export
+import { PdfExportButton } from '../components/ui/pdf-export-button';
+import { prepareExportData } from '../utils/pdfExport';
 
 // Hooks
 import useCostAnalysis from '../hooks/useCostAnalysis';
@@ -56,9 +59,22 @@ const ValueAssessmentPage = () => {
     return pricingStrategy.priceRecommendations[pricingStrategy.selectedStrategy].price;
   }, [pricingStrategy.priceRecommendations, pricingStrategy.selectedStrategy]);
   
-  // Export to PDF (placeholder)
-  const handleExportToPdf = () => {
-    alert('In a full implementation, this would generate a PDF report of your value assessment.');
+  /**
+   * Prepare export data for PDF
+   */
+  const getExportData = () => {
+    const baseData = prepareExportData(costAnalysis, pricingStrategy);
+    
+    return {
+      ...baseData,
+      yourValueScore,
+      customerValueInputs: {
+        currentCost: 100,
+        timeValue: 50,
+        riskCost: 20,
+        opportunityCost: 30
+      }
+    };
   };
   
   // Check if we have enough data
@@ -165,9 +181,13 @@ const ValueAssessmentPage = () => {
                     </CardContent>
                   </Card>
                   
-                  <Button onClick={handleExportToPdf} variant="outline" className="w-full flex items-center justify-center gap-2">
-                    <FileText className="h-4 w-4" /> Export Positioning Analysis
-                  </Button>
+                  <PdfExportButton
+                    exportType="value"
+                    data={getExportData()}
+                    variant="outline"
+                    className="w-full"
+                    label="Export Positioning Analysis"
+                  />
                 </div>
               </div>
             </TabsContent>
@@ -181,9 +201,12 @@ const ValueAssessmentPage = () => {
                 />
                 
                 <div className="flex justify-end">
-                  <Button onClick={handleExportToPdf} variant="outline" className="flex items-center gap-2">
-                    <Download className="h-4 w-4" /> Export Value Calculator to PDF
-                  </Button>
+                  <PdfExportButton
+                    exportType="value"
+                    data={getExportData()}
+                    variant="outline"
+                    label="Export Value Calculator to PDF"
+                  />
                 </div>
               </div>
             </TabsContent>
