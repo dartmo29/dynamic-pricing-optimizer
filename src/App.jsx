@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, PlusCircle, Settings } from 'lucide-react';
+import { ChevronRight, PlusCircle, BarChart2 } from 'lucide-react';
 
 // UI Components
 import { Button } from './components/ui/button';
@@ -15,6 +15,7 @@ import { STORAGE_KEYS, saveToStorage, loadFromStorage } from './utils/storage';
 // Pages
 import PricingOptimizerPage from './pages/PricingOptimizerPage';
 import ValueAssessmentPage from './pages/ValueAssessmentPage';
+import ScenarioComparisonPage from './pages/ScenarioComparisonPage';
 
 // Setup Wizard
 import SetupWizard from './components/setup/SetupWizard';
@@ -81,6 +82,8 @@ const App = () => {
     switch (currentPage) {
       case 'value-assessment':
         return <ValueAssessmentPage />;
+      case 'scenarios':
+        return <ScenarioComparisonPage />;
       case 'pricing':
       default:
         return <PricingOptimizerPage />;
@@ -115,16 +118,46 @@ const App = () => {
             </div>
             <div className="flex items-center gap-2">
               {currentPage === 'pricing' && (
-                <Button
-                  variant="outline"
-                  className="flex items-center gap-1"
-                  onClick={() => setCurrentPage('value-assessment')}
-                >
-                  Value Assessment <ChevronRight className="h-4 w-4" />
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-1"
+                    onClick={() => setCurrentPage('value-assessment')}
+                  >
+                    Value Assessment <ChevronRight className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-1"
+                    onClick={() => setCurrentPage('scenarios')}
+                  >
+                    <BarChart2 className="h-4 w-4 mr-1" /> Scenarios
+                  </Button>
+                </>
               )}
               
               {currentPage === 'value-assessment' && (
+                <>
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-1"
+                    onClick={() => setCurrentPage('pricing')}
+                  >
+                    Pricing Optimizer <ChevronRight className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-1"
+                    onClick={() => setCurrentPage('scenarios')}
+                  >
+                    <BarChart2 className="h-4 w-4 mr-1" /> Scenarios
+                  </Button>
+                </>
+              )}
+              
+              {currentPage === 'scenarios' && (
                 <Button
                   variant="outline"
                   className="flex items-center gap-1"
