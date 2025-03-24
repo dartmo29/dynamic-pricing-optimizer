@@ -77,16 +77,29 @@ const App = () => {
     }
   };
   
+  // Handle navigation between pages
+  const handleNavigateToScenarios = () => {
+    setCurrentPage('scenarios');
+  };
+  
+  const handleNavigateToPricing = () => {
+    setCurrentPage('pricing');
+  };
+  
+  const handleNavigateToValueAssessment = () => {
+    setCurrentPage('value-assessment');
+  };
+  
   // Render the current page based on state
   const renderPage = () => {
     switch (currentPage) {
       case 'value-assessment':
-        return <ValueAssessmentPage />;
+        return <ValueAssessmentPage onNavigateToPricing={handleNavigateToPricing} />;
       case 'scenarios':
-        return <ScenarioComparisonPage />;
+        return <ScenarioComparisonPage onNavigateToPricing={handleNavigateToPricing} />;
       case 'pricing':
       default:
-        return <PricingOptimizerPage />;
+        return <PricingOptimizerPage onNavigateToScenarios={handleNavigateToScenarios} />;
     }
   };
   
@@ -122,7 +135,7 @@ const App = () => {
                   <Button
                     variant="outline"
                     className="flex items-center gap-1"
-                    onClick={() => setCurrentPage('value-assessment')}
+                    onClick={handleNavigateToValueAssessment}
                   >
                     Value Assessment <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -130,7 +143,7 @@ const App = () => {
                   <Button
                     variant="outline"
                     className="flex items-center gap-1"
-                    onClick={() => setCurrentPage('scenarios')}
+                    onClick={handleNavigateToScenarios}
                   >
                     <BarChart2 className="h-4 w-4 mr-1" /> Scenarios
                   </Button>
@@ -142,7 +155,7 @@ const App = () => {
                   <Button
                     variant="outline"
                     className="flex items-center gap-1"
-                    onClick={() => setCurrentPage('pricing')}
+                    onClick={handleNavigateToPricing}
                   >
                     Pricing Optimizer <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -150,7 +163,7 @@ const App = () => {
                   <Button
                     variant="outline"
                     className="flex items-center gap-1"
-                    onClick={() => setCurrentPage('scenarios')}
+                    onClick={handleNavigateToScenarios}
                   >
                     <BarChart2 className="h-4 w-4 mr-1" /> Scenarios
                   </Button>
@@ -161,7 +174,7 @@ const App = () => {
                 <Button
                   variant="outline"
                   className="flex items-center gap-1"
-                  onClick={() => setCurrentPage('pricing')}
+                  onClick={handleNavigateToPricing}
                 >
                   Pricing Optimizer <ChevronRight className="h-4 w-4" />
                 </Button>
