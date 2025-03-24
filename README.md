@@ -86,6 +86,29 @@ dynamic-pricing-optimizer/
 └── README.md
 ```
 
+## 📋 Module Descriptions
+
+### Cost Analysis
+The Cost Analysis module helps businesses understand their cost structure, calculate margins, and determine break-even points. It supports:
+- Direct cost calculation (materials, labor, per-unit costs)
+- Indirect cost allocation (overhead, marketing, administration)
+- Time-based cost tracking (for service businesses)
+- Margin calculation and break-even analysis
+
+### Pricing Strategy
+The Pricing Strategy module generates optimal price recommendations based on:
+- Cost-plus pricing (ensuring target margins)
+- Competitor-based pricing (market positioning)
+- Value-based pricing (charging based on delivered value)
+- Custom blended approaches for balanced recommendations
+
+### Value Assessment
+The Value Assessment module helps businesses articulate and communicate their value proposition with four key components:
+1. **Competitive Analysis**: Compare your offering to competitors
+2. **Value Proposition Editor**: Craft a clear value statement
+3. **Value Mapping**: Connect your value to customer needs
+4. **Value Communication**: Create a plan to communicate your value effectively
+
 ## 🧪 Development and Testing
 
 ### Running Tests
@@ -151,3 +174,9 @@ npm install  # Install any new dependencies
 ## 📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 📅 Recent Updates
+
+- Added `ValueCommunication` component to complete the Value Assessment workflow
+- Implemented Component Test for Value Communication features
+- Added comprehensive documentation for Value Assessment module
