@@ -1,18 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
+import TestApp from './TestApp';
+// Import the main App but don't use it initially
+// import App from './App';
 
-// Simple debug component
-const DebugComponent = () => (
-  <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-    <h1>React is Working!</h1>
-    <p>This is a simple test component to verify React rendering.</p>
-    <p>React version: {React.version}</p>
-  </div>
-);
-
-console.log("Starting React initialization...");
+console.log("Starting React initialization with TestApp...");
 
 try {
   // Get the root element
@@ -24,17 +17,17 @@ try {
   // Create the React root
   const root = ReactDOM.createRoot(rootElement);
   
-  // Render the app (or debug component for testing)
+  // Render the test app instead of the main app to verify React is working
   root.render(
     <React.StrictMode>
+      <TestApp />
+      {/* We'll switch back to this once we confirm React is working:
       <App />
-      {/* Uncomment to test basic React rendering:
-      <DebugComponent />
       */}
     </React.StrictMode>
   );
   
-  console.log("React initialization completed successfully");
+  console.log("React initialization with TestApp completed successfully");
 } catch (error) {
   console.error("Error during React initialization:", error);
   
