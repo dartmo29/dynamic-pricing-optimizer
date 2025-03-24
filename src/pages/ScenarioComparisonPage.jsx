@@ -4,7 +4,6 @@
  */
 
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ScenarioManager from '@/components/pricing-strategy/ScenarioManager';
@@ -17,9 +16,11 @@ import useScenarioManager from '@/hooks/useScenarioManager';
 /**
  * Scenario Comparison Page component
  * 
+ * @param {Object} props - Component props
+ * @param {Function} props.onNavigateToPricing - Navigation handler
  * @returns {JSX.Element} Scenario comparison page
  */
-const ScenarioComparisonPage = () => {
+const ScenarioComparisonPage = ({ onNavigateToPricing }) => {
   // Use hooks for state management
   const costAnalysis = useCostAnalysis();
   const pricingStrategy = usePricingStrategy(costAnalysis.costModel);
@@ -50,11 +51,13 @@ const ScenarioComparisonPage = () => {
     <div className="container mx-auto p-4 space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Link to="/pricing-optimizer">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-1" /> Back to Optimizer
-            </Button>
-          </Link>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={onNavigateToPricing}
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" /> Back to Optimizer
+          </Button>
           <h1 className="text-2xl font-bold">Scenario Comparison</h1>
         </div>
         <Button size="sm" onClick={handleSaveCurrentState}>
