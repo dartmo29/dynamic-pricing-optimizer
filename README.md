@@ -27,6 +27,7 @@ Small business owners can:
   - Optimal blended approach
 - Visual comparison of different strategies
 - Strategy selection with detailed rationale
+- Multi-dimensional competitor positioning map
 
 ### Value Assessment
 - Value-to-price positioning matrix
@@ -46,6 +47,18 @@ Small business owners can:
 - Break-even analysis charts
 - PDF export functionality for reports and presentations
 
+### Guided Setup & Onboarding
+- Step-by-step setup wizard
+- Industry-specific templates
+- Guided business profile configuration
+- Intuitive cost structure setup
+
+### Data Management & Persistence
+- Local storage for saving pricing scenarios
+- Import/export functionality
+- Multiple pricing scenario comparison
+- Session persistence for continuous work
+
 ## Technology Stack
 
 - **Frontend**: React with TailwindCSS
@@ -54,6 +67,7 @@ Small business owners can:
 - **UI Components**: Custom components with accessibility in mind
 - **Styling**: Tailwind CSS for responsive design
 - **PDF Export**: Custom PDF generation capability
+- **Storage**: Browser local storage for data persistence
 
 ## Project Structure
 
@@ -63,12 +77,18 @@ src/
 │   ├── cost-analysis/        # Cost structure components
 │   ├── pricing-strategy/     # Pricing strategy components
 │   ├── value-assessment/     # Value assessment components
+│   ├── setup/                # Setup wizard components
 │   └── ui/                  # Reusable UI components
 ├── hooks/                   # Custom React hooks
 ├── lib/                     # Utility libraries
+│   └── industryTemplates.js  # Industry-specific templates
 ├── models/                  # Data models and business logic
 ├── pages/                   # Page components
+│   ├── PricingOptimizerPage.jsx
+│   └── ValueAssessmentPage.jsx
 └── utils/                   # Helper utilities
+    ├── pdfExport.js         # PDF generation utilities
+    └── storage.js           # Local storage utilities
 ```
 
 ## Development
@@ -97,34 +117,39 @@ npm run build
 
 ## Key Features Added
 
-### Value Assessment Framework
-- Value-Price Positioning Matrix for competitive analysis
-- Customer Value Calculator with ROI assessment
-- Value communication statements for sales enablement
+### Industry-Specific Templates
+- Pre-configured templates for SaaS, retail, professional services, and manufacturing
+- Industry benchmarks and recommended pricing strategies
+- Guided template selection in the setup process
 
-### Break-Even Analysis
-- Interactive chart showing revenue, cost, and profit intersections
-- Break-even point calculation and visualization
-- Contribution margin analysis
+### Multi-Dimensional Competitor Analysis
+- Interactive competitor positioning map
+- Customizable axes for different value dimensions
+- Visual comparison of your offering vs. competitors
 
-### Export Capabilities
-- PDF export for pricing strategies
-- PDF export for value assessments
-- PDF export for comprehensive dashboards
+### Guided Setup Wizard
+- Step-by-step onboarding process
+- Intuitive data collection for new users
+- Visual progress indicator and navigation
 
-### Implementation Workflows
-- Strategy-specific implementation guidance
-- Risk assessment and communication planning
-- Rollout timeline visualization
+### Data Persistence
+- Local storage for saving and loading pricing data
+- Multiple scenario management
+- Import/export functionality for data sharing
+
+### Value Communication Framework
+- Customer value calculator with ROI metrics
+- Value statements for sales conversations
+- Value-price positioning matrix
 
 ## Future Enhancements
 
-- User authentication and saved strategies
-- Industry-specific templates and benchmarks
-- Advanced market analysis with external data
+- User authentication and cloud data storage
+- Advanced market analysis with external data sources
 - Collaborative team pricing workflows
 - Integration with CRM and accounting systems
 - Mobile-optimized version for on-the-go pricing decisions
+- Machine learning suggestions for optimal pricing points
 
 ## License
 
