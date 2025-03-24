@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Button } from '../components/ui/button';
-import { FileText, DollarSign, TrendingUp, BarChart } from 'lucide-react';
+import { FileText, DollarSign, TrendingUp, BarChart, Users } from 'lucide-react';
 
 // Hooks
 import useCostAnalysis from '../hooks/useCostAnalysis';
@@ -21,6 +21,7 @@ import BreakEvenAnalysisChart from '../components/cost-analysis/BreakEvenAnalysi
 import MarketPositionSelector from '../components/pricing-strategy/MarketPositionSelector';
 import CompetitorForm from '../components/pricing-strategy/CompetitorForm';
 import ValueFactorForm from '../components/pricing-strategy/ValueFactorForm';
+import CustomerSegmentForm from '../components/pricing-strategy/CustomerSegmentForm';
 import PricingStrategyDashboard from '../components/pricing-strategy/PricingStrategyDashboard';
 import ImplementationGuidance from '../components/pricing-strategy/ImplementationGuidance';
 
@@ -60,17 +61,33 @@ const PricingOptimizerPage = () => {
   // Use pricing strategy hook with the cost model
   const pricingStrategy = usePricingStrategy(costAnalysis.costModel);
   
-  // Effect to switch to pricing tab after cost structure saved
+  // State for customer segments
+  const [customerSegments, setCustomerSegments] = useState([]);
+  
+  // Effect to switch to customer segments tab after cost structure saved
   useEffect(() => {
     if (costAnalysis.costBreakdown.total > 0 && activeTab === 'cost-analysis') {
-      // Delay switching to pricing tab to allow animation to complete
+      // Delay switching to customer segments tab to allow animation to complete
       const timeout = setTimeout(() => {
-        setActiveTab('pricing-strategies');
+        setActiveTab('customer-segments');
       }, 500);
       
       return () => clearTimeout(timeout);
     }
   }, [costAnalysis.costBreakdown.total, activeTab]);
+  
+  // Effect to initialize customer segments from pricing model
+  useEffect(() => {
+    if (pricingStrategy.pricingModel) {
+      // Check if model has segments already (can be empty array)
+      if (pricingStrategy.pricingModel.segments !== undefined) {
+        setCustomerSegments(pricingStrategy.pricingModel.segments);
+      } else if (pricingStrategy.customerSegments) {
+        // Fallback to hook state if available
+        setCustomerSegments(pricingStrategy.customerSegments);
+      }
+    }
+  }, [pricingStrategy.pricingModel, pricingStrategy.customerSegments]);
   
   /**
    * Handle cost structure save
@@ -87,11 +104,14 @@ const PricingOptimizerPage = () => {
   const getExportData = () => {
     return {
       costAnalysis,
-      pricingStrategy
+      pricingStrategy,
+      customerSegments
     };
   };
   
-  // Get recommended price
+  /**
+   * Get recommended price
+   */
   const getRecommendedPrice = () => {
     if (!pricingStrategy.priceRecommendations || 
         !pricingStrategy.selectedStrategy || 
@@ -101,15 +121,81 @@ const PricingOptimizerPage = () => {
     
     return pricingStrategy.priceRecommendations[pricingStrategy.selectedStrategy].price;
   };
+
+  /**
+   * Handle adding a customer segment
+   */
+  const handleAddSegment = (segment) => {
+    if (pricingStrategy.pricingModel) {
+      const id = pricingStrategy.pricingModel.addSegment(
+        segment.name, 
+        segment.size, 
+        segment.priceElasticity, 
+        segment.description || ''
+      );
+      
+      // Update local state
+      setCustomerSegments([...pricingStrategy.pricingModel.segments]);
+      
+      // Trigger recalculation
+      pricingStrategy.recalculateRecommendations();
+      
+      return id;
+    }
+    return null;
+  };
+
+  /**
+   * Handle updating a customer segment
+   */
+  const handleUpdateSegment = (id, updatedSegment) => {
+    if (pricingStrategy.pricingModel) {
+      const success = pricingStrategy.pricingModel.updateSegment(id, updatedSegment);
+      
+      if (success) {
+        // Update local state
+        setCustomerSegments([...pricingStrategy.pricingModel.segments]);
+        
+        // Trigger recalculation
+        pricingStrategy.recalculateRecommendations();
+      }
+      
+      return success;
+    }
+    return false;
+  };
+
+  /**
+   * Handle removing a customer segment
+   */
+  const handleRemoveSegment = (id) => {
+    if (pricingStrategy.pricingModel) {
+      const success = pricingStrategy.pricingModel.removeSegment(id);
+      
+      if (success) {
+        // Update local state
+        setCustomerSegments([...pricingStrategy.pricingModel.segments]);
+        
+        // Trigger recalculation
+        pricingStrategy.recalculateRecommendations();
+      }
+      
+      return success;
+    }
+    return false;
+  };
   
   return (
     <div className="container mx-auto p-4 space-y-6">
       <h1 className="text-2xl font-bold mb-6">Dynamic Pricing Optimizer</h1>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-4 mb-6">
+        <TabsList className="grid grid-cols-5 mb-6">
           <TabsTrigger value="cost-analysis" className="flex items-center gap-2">
             <FileText className="h-4 w-4" /> Cost Analysis
+          </TabsTrigger>
+          <TabsTrigger value="customer-segments" className="flex items-center gap-2">
+            <Users className="h-4 w-4" /> Customer Segments
           </TabsTrigger>
           <TabsTrigger value="pricing-strategies" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" /> Pricing Strategies
@@ -146,6 +232,35 @@ const PricingOptimizerPage = () => {
               )}
             </div>
           </div>
+          
+          <div className="flex justify-end mt-6">
+            {costAnalysis.costBreakdown.total > 0 && (
+              <Button onClick={() => setActiveTab('customer-segments')}>
+                Continue to Customer Segments
+              </Button>
+            )}
+          </div>
+        </TabsContent>
+        
+        {/* Customer Segments Tab */}
+        <TabsContent value="customer-segments">
+          <div className="space-y-6">
+            <CustomerSegmentForm 
+              segments={customerSegments}
+              onAddSegment={handleAddSegment}
+              onUpdateSegment={handleUpdateSegment}
+              onRemoveSegment={handleRemoveSegment}
+            />
+            
+            <div className="flex justify-between mt-6">
+              <Button variant="outline" onClick={() => setActiveTab('cost-analysis')}>
+                Back to Cost Analysis
+              </Button>
+              <Button onClick={() => setActiveTab('pricing-strategies')}>
+                Continue to Pricing Strategies
+              </Button>
+            </div>
+          </div>
         </TabsContent>
         
         {/* Pricing Strategies Tab */}
@@ -179,6 +294,7 @@ const PricingOptimizerPage = () => {
                 recommendations={pricingStrategy.priceRecommendations}
                 selectedStrategy={pricingStrategy.selectedStrategy}
                 onSelectStrategy={pricingStrategy.selectStrategy}
+                customerSegments={customerSegments}
               />
               
               {Object.keys(pricingStrategy.priceRecommendations).length > 0 && (
@@ -192,6 +308,15 @@ const PricingOptimizerPage = () => {
               )}
             </div>
           </div>
+          
+          <div className="flex justify-between mt-6">
+            <Button variant="outline" onClick={() => setActiveTab('customer-segments')}>
+              Back to Customer Segments
+            </Button>
+            <Button onClick={() => setActiveTab('implementation')}>
+              Continue to Implementation
+            </Button>
+          </div>
         </TabsContent>
         
         {/* Implementation Tab */}
@@ -201,14 +326,23 @@ const PricingOptimizerPage = () => {
               <ImplementationGuidance 
                 guidance={pricingStrategy.implementationGuidance} 
                 strategyName={pricingStrategy.selectedStrategy} 
+                customerSegments={customerSegments}
               />
               
-              <div className="flex justify-end">
-                <PdfExportButton
-                  exportType="pricing"
-                  data={getExportData()}
-                  label="Export Implementation Plan to PDF"
-                />
+              <div className="flex justify-between mt-6">
+                <Button variant="outline" onClick={() => setActiveTab('pricing-strategies')}>
+                  Back to Pricing Strategies
+                </Button>
+                <div className="flex gap-4">
+                  <PdfExportButton
+                    exportType="pricing"
+                    data={getExportData()}
+                    label="Export Implementation Plan"
+                  />
+                  <Button onClick={() => setActiveTab('dashboard')}>
+                    Continue to Dashboard
+                  </Button>
+                </div>
               </div>
             </div>
           ) : (
@@ -252,46 +386,72 @@ const PricingOptimizerPage = () => {
               </div>
               
               <div className="grid md:grid-cols-2 gap-6">
-                <CostBreakdownChart costBreakdown={{
-                  ...costAnalysis.costBreakdown, 
-                  targetMargin: costAnalysis.targetMargin
-                }} />
-                
-                <div className="bg-white p-4 rounded-lg shadow">
-                  <h3 className="text-lg font-medium mb-4">Pricing Strategy Comparison</h3>
-                  <div className="space-y-4">
-                    {Object.entries(pricingStrategy.priceRecommendations).map(([strategy, rec]) => (
-                      <div key={strategy} className="flex justify-between items-center p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{
-                            {
-                              'cost-plus': 'Cost-Plus',
-                              'competitor': 'Competitor-Based',
-                              'value': 'Value-Based',
-                              'optimal': 'Optimal Blend'
-                            }[strategy]
-                          }</p>
-                          <p className="text-sm text-gray-500">
-                            {(rec.margin * 100).toFixed(0)}% margin
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold">${rec.price.toFixed(2)}</p>
-                        </div>
+                <div className="space-y-4">
+                  <CostBreakdownChart costBreakdown={{
+                    ...costAnalysis.costBreakdown, 
+                    targetMargin: costAnalysis.targetMargin
+                  }} />
+                  
+                  {customerSegments.length > 0 && (
+                    <div className="bg-white p-4 rounded-lg shadow">
+                      <h3 className="text-lg font-medium mb-4">Customer Segments</h3>
+                      <div className="space-y-3">
+                        {customerSegments.map(segment => (
+                          <div key={segment.id} className="p-3 border rounded-lg">
+                            <div className="flex justify-between">
+                              <span className="font-medium">{segment.name}</span>
+                              <span>{segment.size}% of market</span>
+                            </div>
+                            <div className="text-sm text-gray-500 mt-1">
+                              Price Sensitivity: {segment.priceElasticity}/10
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="bg-white p-4 rounded-lg shadow">
+                    <h3 className="text-lg font-medium mb-4">Pricing Strategy Comparison</h3>
+                    <div className="space-y-4">
+                      {Object.entries(pricingStrategy.priceRecommendations).map(([strategy, rec]) => (
+                        <div key={strategy} className="flex justify-between items-center p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{
+                              {
+                                'cost-plus': 'Cost-Plus',
+                                'competitor': 'Competitor-Based',
+                                'value': 'Value-Based',
+                                'optimal': 'Optimal Blend'
+                              }[strategy]
+                            }</p>
+                            <p className="text-sm text-gray-500">
+                              {(rec.margin * 100).toFixed(0)}% margin
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold">${rec.price.toFixed(2)}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                  
+                  <BreakEvenAnalysisChart 
+                    costBreakdown={costAnalysis.costBreakdown}
+                    targetMargin={costAnalysis.targetMargin}
+                    price={getRecommendedPrice()}
+                    monthlyVolume={costAnalysis.expectedVolume}
+                  />
                 </div>
               </div>
               
-              <BreakEvenAnalysisChart 
-                costBreakdown={costAnalysis.costBreakdown}
-                targetMargin={costAnalysis.targetMargin}
-                price={getRecommendedPrice()}
-                monthlyVolume={costAnalysis.expectedVolume}
-              />
-              
-              <div className="flex justify-end">
+              <div className="flex justify-between mt-6">
+                <Button variant="outline" onClick={() => setActiveTab('implementation')}>
+                  Back to Implementation
+                </Button>
                 <PdfExportButton
                   exportType="dashboard"
                   data={getExportData()}
