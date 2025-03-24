@@ -1,11 +1,42 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import MinimalApp from './MinimalApp';
-// We'll gradually work back to the main App
-// import App from './App';
+import TestApp from './TestApp';
+// Import the main App to test with
+import App from './App';
 
-console.log("Starting React initialization with MinimalApp...");
+console.log("Starting React initialization with TestApp and limited App...");
+
+// Create a simplified version of the App component
+const SimplifiedApp = () => {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow">
+        <div className="container mx-auto p-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-xl font-bold text-gray-800">Dynamic Pricing Optimizer</h1>
+              <p className="text-sm text-gray-500">Make data-driven pricing decisions</p>
+            </div>
+            <div>
+              <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                Test Version
+              </span>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <main className="container mx-auto py-6">
+        <div className="text-center p-8">
+          <h2 className="text-lg font-medium mb-4">Simplified App Component</h2>
+          <p className="mb-4">This is a simplified version of the App component without complex logic.</p>
+          <p>If you can see this, the basic structure is working.</p>
+        </div>
+      </main>
+    </div>
+  );
+};
 
 try {
   // Get the root element
@@ -17,17 +48,23 @@ try {
   // Create the React root
   const root = ReactDOM.createRoot(rootElement);
   
-  // Render the minimal app to test UI components
+  // Render the simplified app 
   root.render(
     <React.StrictMode>
-      <MinimalApp />
-      {/* We'll switch back to this once we confirm UI components are working:
+      {/* Use the simplified app component */}
+      <SimplifiedApp />
+      
+      {/* Original TestApp for reference 
+      <TestApp />
+      */}
+      
+      {/* Main App - uncomment to test 
       <App />
       */}
     </React.StrictMode>
   );
   
-  console.log("React initialization with MinimalApp completed successfully");
+  console.log("React initialization completed successfully");
 } catch (error) {
   console.error("Error during React initialization:", error);
   
