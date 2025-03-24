@@ -73,9 +73,13 @@ const ValueAssessmentPage = () => {
     <div className="container mx-auto p-4 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Value Assessment</h1>
-        <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+        <Button 
+          variant="ghost" 
+          onClick={() => window.location.href = '#'} 
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+        >
           <ArrowLeft className="h-4 w-4" /> Back to Main Dashboard
-        </Link>
+        </Button>
       </div>
       
       {!hasRequiredData ? (
@@ -87,9 +91,9 @@ const ValueAssessmentPage = () => {
                 To use the value assessment tools, you need to complete the cost analysis and 
                 pricing strategy sections first.
               </p>
-              <Link href="/">
-                <Button>Go to Pricing Optimizer</Button>
-              </Link>
+              <Button onClick={() => window.location.href = '#'}>
+                Go to Pricing Optimizer
+              </Button>
             </div>
           </CardContent>
         </Card>
