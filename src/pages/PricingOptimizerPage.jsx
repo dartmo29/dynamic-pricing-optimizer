@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Button } from '../components/ui/button';
 import { FileText, DollarSign, TrendingUp, BarChart } from 'lucide-react';
 
 // Hooks
@@ -25,8 +25,25 @@ import PricingStrategyDashboard from '../components/pricing-strategy/PricingStra
 import ImplementationGuidance from '../components/pricing-strategy/ImplementationGuidance';
 
 // PDF Export
-import { PdfExportButton } from '../components/ui/pdf-export-button';
-import { prepareExportData } from '../utils/pdfExport';
+import { exportToPdf as exportPricing } from '../utils/pdfExport';
+
+/**
+ * PDF Export Button component
+ */
+const PdfExportButton = ({ exportType, data, label }) => {
+  const handleExport = () => {
+    if (exportType === 'pricing' || exportType === 'dashboard') {
+      exportPricing(data, exportType);
+    }
+  };
+  
+  return (
+    <Button onClick={handleExport} className="flex items-center gap-2">
+      <FileText className="h-4 w-4" />
+      {label || 'Export to PDF'}
+    </Button>
+  );
+};
 
 /**
  * Pricing Optimizer Page component
@@ -68,7 +85,10 @@ const PricingOptimizerPage = () => {
    * Prepare export data for PDF
    */
   const getExportData = () => {
-    return prepareExportData(costAnalysis, pricingStrategy);
+    return {
+      costAnalysis,
+      pricingStrategy
+    };
   };
   
   // Get recommended price
