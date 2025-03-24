@@ -10,6 +10,9 @@ export const STORAGE_KEYS = {
   BUSINESS_PROFILE: 'dpo_business_profile',
   COMPETITORS: 'dpo_competitors',
   VALUE_FACTORS: 'dpo_value_factors',
+  VALUE_PROPOSITION: 'dpo_value_proposition',
+  VALUE_MAP: 'dpo_value_map',
+  COMMUNICATION: 'dpo_communication',
   SETTINGS: 'dpo_settings',
   SCENARIOS: 'dpo_scenarios'
 };
