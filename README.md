@@ -142,6 +142,31 @@ npm run build
 - Value statements for sales conversations
 - Value-price positioning matrix
 
+## Recent Updates
+
+- Added missing components for the setup wizard
+- Implemented industry template selection
+- Added support for multiple pricing strategies
+- Fixed path resolution for proper module imports
+- Added various UI components (input, select, etc.)
+- Added favicon and improved application structure
+
+## Troubleshooting
+
+If you encounter any issues during setup or running the application:
+
+1. **Module Resolution Issues**:
+   - Ensure you're using the latest code from the repository
+   - Check that the path aliases are correctly set up in vite.config.js
+
+2. **Component Import Errors**:
+   - Make sure all UI components are properly imported
+   - Check for proper usage of the @ path alias
+
+3. **Local Storage Issues**:
+   - If you experience issues with saving/loading data, try clearing your browser's local storage
+   - Check browser console for any storage-related errors
+
 ## Future Enhancements
 
 - User authentication and cloud data storage
