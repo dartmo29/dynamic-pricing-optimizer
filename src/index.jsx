@@ -1,150 +1,74 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import TestApp from './TestApp';
 import App from './App';
 import GradualApp from './GradualApp';
+import TestApp from './TestApp';
 
 // Wrapper component to toggle between different app versions
 const AppSelector = () => {
-  const [currentApp, setCurrentApp] = useState('test'); // Options: 'test', 'simple', 'gradual', 'full'
+  const [appMode, setAppMode] = useState(localStorage.getItem('dpo_app_mode') || 'main');
   
-  const renderApp = () => {
-    switch(currentApp) {
-      case 'simple':
-        return <App />;
-      case 'gradual':
-        return <GradualApp />;
-      case 'full':
-        // This will be the full app once we restore it
-        return <div className="p-6 bg-red-50 text-red-600 rounded-lg">
-          Full app is not yet implemented. Please use Gradual App for testing.
-        </div>;
-      case 'test':
-      default:
-        return <TestApp />;
-    }
+  // Save app mode to localStorage when it changes
+  const handleAppModeChange = (mode) => {
+    setAppMode(mode);
+    localStorage.setItem('dpo_app_mode', mode);
   };
   
   return (
     <div>
-      <div style={{ 
-        backgroundColor: "#f9fafb", 
-        padding: "10px",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
-      }}>
-        <span style={{ fontWeight: "bold" }}>
-          Running: {
-            currentApp === 'test' ? 'Test App' : 
-            currentApp === 'simple' ? 'Simple App' : 
-            currentApp === 'gradual' ? 'Gradual Testing App' : 
-            'Full App'
-          }
-        </span>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <button 
-            onClick={() => setCurrentApp('test')}
-            style={{
-              padding: "5px 10px",
-              backgroundColor: currentApp === 'test' ? "#bfdbfe" : "#e5e7eb",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer"
-            }}
-          >
-            Test App
-          </button>
-          <button 
-            onClick={() => setCurrentApp('simple')}
-            style={{
-              padding: "5px 10px",
-              backgroundColor: currentApp === 'simple' ? "#bfdbfe" : "#e5e7eb",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer"
-            }}
-          >
-            Simple App
-          </button>
-          <button 
-            onClick={() => setCurrentApp('gradual')}
-            style={{
-              padding: "5px 10px",
-              backgroundColor: currentApp === 'gradual' ? "#bfdbfe" : "#e5e7eb",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer"
-            }}
-          >
-            Gradual App
-          </button>
-        </div>
-      </div>
-      
-      <div style={{ marginTop: "40px" }}>
-        {renderApp()}
-      </div>
-      
-      {currentApp === 'test' && (
-        <div style={{ 
-          maxWidth: "800px", 
-          margin: "30px auto",
-          padding: "20px",
-          backgroundColor: "#f0f9ff",
-          borderRadius: "8px",
-          border: "1px solid #bfdbfe"
-        }}>
-          <h2>App Testing Options</h2>
-          <p>The test app is working correctly. Now you can try the other variants:</p>
-          <ul style={{ marginLeft: "20px", marginTop: "10px", marginBottom: "15px", lineHeight: "1.5" }}>
-            <li><strong>Simple App</strong> - Basic version with Tailwind styling but no complex functionality</li>
-            <li><strong>Gradual App</strong> - Interactive version that lets you enable features one by one to identify issues</li>
-          </ul>
-          <div style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
-            <button 
-              onClick={() => setCurrentApp('simple')}
-              style={{
-                backgroundColor: "#3b82f6",
-                color: "white",
-                border: "none",
-                padding: "10px 20px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontWeight: "bold",
-              }}
+      {/* App mode selector */}
+      <div className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
+        <div className="container mx-auto px-4 py-2 flex justify-between items-center">
+          <div className="text-sm font-medium">
+            Dynamic Pricing Optimizer
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => handleAppModeChange('main')}
+              className={`px-3 py-1 text-sm rounded-md ${
+                appMode === 'main' 
+                  ? 'bg-blue-100 text-blue-700 font-medium' 
+                  : 'bg-gray-100 text-gray-700'
+              }`}
             >
-              Try Simple App
+              Main App
             </button>
-            <button 
-              onClick={() => setCurrentApp('gradual')}
-              style={{
-                backgroundColor: "#8b5cf6",
-                color: "white",
-                border: "none",
-                padding: "10px 20px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontWeight: "bold",
-              }}
+            <button
+              onClick={() => handleAppModeChange('gradual')}
+              className={`px-3 py-1 text-sm rounded-md ${
+                appMode === 'gradual' 
+                  ? 'bg-indigo-100 text-indigo-700 font-medium' 
+                  : 'bg-gray-100 text-gray-700'
+              }`}
             >
-              Try Gradual Testing App
+              Gradual App
+            </button>
+            <button
+              onClick={() => handleAppModeChange('test')}
+              className={`px-3 py-1 text-sm rounded-md ${
+                appMode === 'test' 
+                  ? 'bg-green-100 text-green-700 font-medium' 
+                  : 'bg-gray-100 text-gray-700'
+              }`}
+            >
+              Test App
             </button>
           </div>
         </div>
-      )}
+      </div>
+      
+      {/* App container with top margin for the selector */}
+      <div className="mt-12">
+        {appMode === 'main' && <App />}
+        {appMode === 'gradual' && <GradualApp />}
+        {appMode === 'test' && <TestApp />}
+      </div>
     </div>
   );
 };
 
-console.log("Starting React initialization with enhanced App Selector...");
+console.log("Starting Dynamic Pricing Optimizer...");
 
 try {
   // Get the root element
@@ -163,15 +87,15 @@ try {
     </React.StrictMode>
   );
   
-  console.log("React initialization completed successfully");
+  console.log("Application initialized successfully");
 } catch (error) {
-  console.error("Error during React initialization:", error);
+  console.error("Error during application initialization:", error);
   
   // Add a visible error message to the page
   document.body.innerHTML = `
     <div style="padding: 20px; font-family: Arial, sans-serif;">
-      <h1 style="color: #e11d48;">React Initialization Error</h1>
-      <p>There was an error initializing React. Check the console for details.</p>
+      <h1 style="color: #e11d48;">Application Error</h1>
+      <p>There was an error initializing the application. Check the console for details.</p>
       <pre style="background: #f1f5f9; padding: 15px; border-radius: 4px; overflow: auto;">${error.toString()}</pre>
       <button onclick="window.location.reload()" style="margin-top: 15px; padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">Reload Page</button>
     </div>
