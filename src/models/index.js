@@ -5,8 +5,10 @@
 
 import CostModel from './CostModel';
 import PricingModel from './PricingModel';
+import CustomerSegmentModel from './CustomerSegmentModel';
 
 export {
   CostModel,
-  PricingModel
+  PricingModel,
+  CustomerSegmentModel
 };
