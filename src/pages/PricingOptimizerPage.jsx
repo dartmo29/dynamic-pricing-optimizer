@@ -6,11 +6,12 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Button } from '../components/ui/button';
-import { FileText, DollarSign, TrendingUp, BarChart, Users } from 'lucide-react';
+import { FileText, DollarSign, TrendingUp, BarChart, Users, BarChart2 } from 'lucide-react';
 
 // Hooks
 import useCostAnalysis from '../hooks/useCostAnalysis';
 import usePricingStrategy from '../hooks/usePricingStrategy';
+import useScenarioManager from '../hooks/useScenarioManager';
 
 // Cost Analysis Components
 import CostStructureForm from '../components/cost-analysis/CostStructureForm';
@@ -24,6 +25,7 @@ import ValueFactorForm from '../components/pricing-strategy/ValueFactorForm';
 import CustomerSegmentForm from '../components/pricing-strategy/CustomerSegmentForm';
 import PricingStrategyDashboard from '../components/pricing-strategy/PricingStrategyDashboard';
 import ImplementationGuidance from '../components/pricing-strategy/ImplementationGuidance';
+import ScenarioManager from '../components/pricing-strategy/ScenarioManager';
 
 // PDF Export
 import { exportToPdf as exportPricing } from '../utils/pdfExport';
@@ -51,7 +53,7 @@ const PdfExportButton = ({ exportType, data, label }) => {
  * 
  * @returns {JSX.Element} Main page component
  */
-const PricingOptimizerPage = () => {
+const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
   // State for active tab
   const [activeTab, setActiveTab] = useState('cost-analysis');
   
@@ -63,6 +65,9 @@ const PricingOptimizerPage = () => {
   
   // State for customer segments
   const [customerSegments, setCustomerSegments] = useState([]);
+  
+  // Use scenario manager hook
+  const scenarioManager = useScenarioManager();
   
   // Effect to switch to customer segments tab after cost structure saved
   useEffect(() => {
@@ -185,9 +190,36 @@ const PricingOptimizerPage = () => {
     return false;
   };
   
+  /**
+   * Save current state as a scenario
+   */
+  const handleSaveAsScenario = () => {
+    const defaultName = `${pricingStrategy.selectedStrategy} Strategy (${new Date().toLocaleDateString()})`;
+    
+    scenarioManager.createScenario(defaultName, {
+      costAnalysis,
+      pricingStrategy
+    });
+    
+    // Optionally navigate to the scenarios page
+    if (typeof onNavigateToScenarios === 'function') {
+      onNavigateToScenarios();
+    }
+  };
+  
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <h1 className="text-2xl font-bold mb-6">Dynamic Pricing Optimizer</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Dynamic Pricing Optimizer</h1>
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2"
+          onClick={handleSaveAsScenario}
+        >
+          <BarChart2 className="h-4 w-4" />
+          Save As Scenario
+        </Button>
+      </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-5 mb-6">
@@ -452,11 +484,21 @@ const PricingOptimizerPage = () => {
                 <Button variant="outline" onClick={() => setActiveTab('implementation')}>
                   Back to Implementation
                 </Button>
-                <PdfExportButton
-                  exportType="dashboard"
-                  data={getExportData()}
-                  label="Export Dashboard to PDF"
-                />
+                <div className="flex gap-2">
+                  <PdfExportButton
+                    exportType="dashboard"
+                    data={getExportData()}
+                    label="Export Dashboard to PDF"
+                  />
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center gap-2"
+                    onClick={handleSaveAsScenario}
+                  >
+                    <BarChart2 className="h-4 w-4" />
+                    Save As Scenario
+                  </Button>
+                </div>
               </div>
             </div>
           ) : (
