@@ -3,6 +3,8 @@
  * Handles calculations for different pricing strategies and recommendations
  */
 
+import CustomerSegmentModel from './CustomerSegmentModel';
+
 /**
  * Pricing strategy class for generating optimal pricing recommendations
  */
@@ -11,8 +13,9 @@ class PricingModel {
     this.costModel = costModel;
     this.competitors = [];
     this.valueFactors = [];
-    this.customerSegments = [];
+    this.customerSegmentModel = new CustomerSegmentModel();
     this.marketPosition = 'mid-market'; // 'budget', 'mid-market', 'premium'
+    this.baseDemand = 100; // Default reference demand
   }
 
   /**
@@ -61,13 +64,22 @@ class PricingModel {
    * @param {string} name - Segment name
    * @param {number} size - Relative size (percentage or absolute)
    * @param {number} priceElasticity - Price sensitivity (1-10, 10 being most sensitive)
+   * @param {string} description - Optional description
+   * @returns {string} New segment ID
    */
-  addCustomerSegment(name, size, priceElasticity) {
-    this.customerSegments.push({
-      name,
-      size: Number(size),
-      priceElasticity: Number(priceElasticity)
-    });
+  addCustomerSegment(name, size, priceElasticity, description = '') {
+    // Convert priceElasticity from 1-10 scale to -10 to 0 scale
+    // Where 1 = least sensitive (-0.5) and 10 = most sensitive (-10)
+    const elasticity = -((priceElasticity / 10) * 9.5 + 0.5);
+    return this.customerSegmentModel.addSegment(name, size, elasticity, description);
+  }
+
+  /**
+   * Set base demand for elasticity calculations
+   * @param {number} demand - Base demand at current price
+   */
+  setBaseDemand(demand) {
+    this.baseDemand = Number(demand);
   }
 
   /**
@@ -173,8 +185,31 @@ class PricingModel {
   }
 
   /**
+   * Calculate elasticity-based optimal price
+   * @returns {number} Recommended price
+   */
+  calculateElasticityBasedPrice() {
+    // Get the minimally viable price
+    const minimumViablePrice = this.costModel.calculateMinimumViablePrice();
+    
+    // Get the base price (from competitor or cost analysis)
+    const basePrice = this.competitors.length > 0 
+      ? this.calculateCompetitorIndexedPrice() 
+      : this.calculateCostPlusPrice();
+    
+    // Calculate optimal price using elasticity model
+    const result = this.customerSegmentModel.calculateOptimalPrice(
+      minimumViablePrice, 
+      basePrice, 
+      this.baseDemand
+    );
+    
+    return result.price;
+  }
+
+  /**
    * Get price recommendation for a specific strategy
-   * @param {string} strategy - 'cost-plus', 'competitor', 'value', 'optimal'
+   * @param {string} strategy - 'cost-plus', 'competitor', 'value', 'elasticity', 'optimal'
    * @returns {Object} Price recommendation with explanation
    */
   getPriceRecommendation(strategy = 'optimal') {
@@ -198,36 +233,43 @@ class PricingModel {
         explanation = `Based on your superior value in ${this.getTopValueFactors(2).join(' and ')}, this price reflects the premium value you provide.`;
         confidenceLevel = (this.competitors.length > 0 && this.valueFactors.length > 2) ? 0.75 : 0.4;
         break;
+
+      case 'elasticity':
+        price = this.calculateElasticityBasedPrice();
+        explanation = `This price is optimized for revenue based on the price sensitivity of your customer segments.`;
+        confidenceLevel = this.customerSegmentModel.segments.length > 0 ? 0.7 : 0.4;
+        break;
         
       case 'optimal':
       default:
         // Weight the strategies based on available data
         let weights = {
-          costPlus: 0.4,
-          competitor: 0.3,
-          value: 0.3
+          costPlus: 0.3,
+          competitor: 0.25,
+          value: 0.25,
+          elasticity: 0.2
         };
         
         // Adjust weights based on data quality
         if (this.competitors.length < 2) weights.competitor = 0.1;
         if (this.valueFactors.length < 2) weights.value = 0.1;
+        if (this.customerSegmentModel.segments.length === 0) weights.elasticity = 0.05;
         
         // Normalize weights
-        const totalWeight = weights.costPlus + weights.competitor + weights.value;
-        weights = {
-          costPlus: weights.costPlus / totalWeight,
-          competitor: weights.competitor / totalWeight,
-          value: weights.value / totalWeight
-        };
+        const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
+        Object.keys(weights).forEach(key => {
+          weights[key] = weights[key] / totalWeight;
+        });
         
         // Calculate weighted price
         price = (
           this.calculateCostPlusPrice() * weights.costPlus +
           this.calculateCompetitorIndexedPrice() * weights.competitor +
-          this.calculateValueBasedPrice() * weights.value
+          this.calculateValueBasedPrice() * weights.value +
+          this.calculateElasticityBasedPrice() * weights.elasticity
         );
         
-        explanation = `This optimal price balances your cost structure, competitive positioning, and value differentiation to maximize long-term profitability.`;
+        explanation = `This optimal price balances your cost structure, competitive positioning, value differentiation, and customer price sensitivity to maximize long-term profitability.`;
         confidenceLevel = 0.65; // Balanced confidence level
         break;
     }
@@ -238,6 +280,26 @@ class PricingModel {
       confidenceLevel,
       margin: this.costModel.calculateMarginAtPrice(price),
       breakEvenVolume: this.costModel.calculateBreakEvenVolume(price)
+    };
+  }
+
+  /**
+   * Get price recommendations for each customer segment
+   * @param {string} baseStrategy - Base strategy for reference price
+   * @returns {Array} Price recommendations for each segment
+   */
+  getSegmentPriceRecommendations(baseStrategy = 'optimal') {
+    // Get the base price recommendation
+    const baseRecommendation = this.getPriceRecommendation(baseStrategy);
+    const basePrice = baseRecommendation.price;
+    
+    // Calculate segment-specific prices
+    const segmentPrices = this.customerSegmentModel.calculateSegmentPrices(basePrice);
+    
+    return {
+      basePrice,
+      baseStrategy,
+      segmentPrices
     };
   }
 
@@ -262,6 +324,7 @@ class PricingModel {
       costPlus: this.getPriceRecommendation('cost-plus'),
       competitor: this.getPriceRecommendation('competitor'),
       value: this.getPriceRecommendation('value'),
+      elasticity: this.getPriceRecommendation('elasticity'),
       optimal: this.getPriceRecommendation('optimal')
     };
   }
@@ -271,11 +334,13 @@ class PricingModel {
    * @returns {number} Overall price sensitivity score (1-10)
    */
   calculatePriceSensitivity() {
-    if (this.customerSegments.length === 0) return 5; // Default medium sensitivity
+    const elasticity = this.customerSegmentModel.calculateWeightedElasticity();
     
-    return this.customerSegments.reduce(
-      (sum, segment) => sum + (segment.priceElasticity * segment.size), 0
-    ) / this.customerSegments.reduce((sum, segment) => sum + segment.size, 0);
+    // Convert elasticity (typically -10 to 0 scale) to sensitivity (1-10 scale)
+    // Where -10 = extremely elastic = 10 sensitivity
+    // And -0.5 = inelastic = 1 sensitivity
+    
+    return Math.min(10, Math.max(1, ((Math.abs(elasticity) - 0.5) / 9.5) * 9 + 1));
   }
 
   /**
@@ -286,6 +351,7 @@ class PricingModel {
   getImplementationGuidance(selectedStrategy = 'optimal') {
     const recommendation = this.getPriceRecommendation(selectedStrategy);
     const priceSensitivity = this.calculatePriceSensitivity();
+    const hasSegments = this.customerSegmentModel.segments.length > 0;
     
     // Generate appropriate implementation steps
     const steps = [];
@@ -304,11 +370,21 @@ class PricingModel {
       });
     }
     
-    if (priceSensitivity > 7) {
+    if (priceSensitivity > 7 || hasSegments) {
       steps.push({
         title: "Create tiered offerings",
         description: "Consider creating good/better/best options to capture price-sensitive segments."
       });
+      
+      // Add segment-specific recommendations if available
+      if (hasSegments) {
+        const segmentRecommendations = this.getSegmentPriceRecommendations(selectedStrategy);
+        
+        steps.push({
+          title: "Implement segment-specific pricing",
+          description: `Tailor your pricing for different segments based on their willingness to pay and needs.`
+        });
+      }
     }
     
     if (recommendation.price > this.calculateCostPlusPrice() * 1.2) {
@@ -329,7 +405,8 @@ class PricingModel {
       rationale: recommendation.explanation,
       estimatedMargin: recommendation.margin,
       implementationSteps: steps,
-      communicationTips: this.getPriceCommunicationTips(selectedStrategy)
+      communicationTips: this.getPriceCommunicationTips(selectedStrategy),
+      segmentRecommendations: hasSegments ? this.getSegmentPriceRecommendations(selectedStrategy) : null
     };
   }
 
@@ -360,6 +437,11 @@ class PricingModel {
       case 'value':
         tips.push("Create case studies that demonstrate specific outcomes achieved");
         tips.push("Prepare ROI calculations customized to each prospect's situation");
+        break;
+
+      case 'elasticity':
+        tips.push("Segment your messaging based on different customer groups");
+        tips.push("Offer appropriate discounts or premiums based on segment price sensitivity");
         break;
     }
     
