@@ -55,10 +55,12 @@ npm run dev
 ## 📊 Key Features
 
 - **Cost Analysis**: Break down your cost structure for accurate pricing foundations
+- **Customer Segmentation**: Analyze price elasticity for different customer segments
 - **Market Positioning**: Analyze your pricing relative to competitors
 - **Value Assessment**: Quantify your unique value proposition
 - **Strategic Recommendations**: Get data-driven pricing strategy suggestions
 - **Implementation Guidance**: Step-by-step guidance for rolling out new pricing
+- **Scenario Comparison**: Create and compare different pricing scenarios
 
 ## 🏗️ Project Structure
 
@@ -95,12 +97,27 @@ The Cost Analysis module helps businesses understand their cost structure, calcu
 - Time-based cost tracking (for service businesses)
 - Margin calculation and break-even analysis
 
+### Customer Segments
+The Customer Segments module helps businesses analyze and optimize pricing for different customer groups:
+- Define segments with varying price sensitivity levels
+- Visualize price sensitivity across customer segments
+- Get segment-specific pricing recommendations
+- Create tailored implementation plans for each segment
+
 ### Pricing Strategy
 The Pricing Strategy module generates optimal price recommendations based on:
 - Cost-plus pricing (ensuring target margins)
 - Competitor-based pricing (market positioning)
 - Value-based pricing (charging based on delivered value)
 - Custom blended approaches for balanced recommendations
+
+### Scenario Comparison
+The Scenario Comparison module allows businesses to create and compare different pricing strategies:
+- Save different pricing configurations as named scenarios
+- Compare multiple scenarios side by side
+- Analyze key pricing metrics across scenarios
+- See detailed differences between scenarios
+- Import/export scenarios for sharing or backup
 
 ### Value Assessment
 The Value Assessment module helps businesses articulate and communicate their value proposition with four key components:
@@ -177,6 +194,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📅 Recent Updates
 
-- Added `ValueCommunication` component to complete the Value Assessment workflow
-- Implemented Component Test for Value Communication features
-- Added comprehensive documentation for Value Assessment module
+- Added full scenario comparison and management system
+- Implemented customer segmentation with price elasticity analysis
+- Added segment-specific pricing recommendations
+- Integrated segment-based implementation guidance
+- Added export/import functionality for scenarios
+- Enhanced user experience with improved workflow navigation
+- Added ability to save and compare different pricing strategies
