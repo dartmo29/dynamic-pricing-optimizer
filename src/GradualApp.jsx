@@ -1,42 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from './components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { ChevronRight, Settings, PlusCircle } from 'lucide-react';
 
-// Storage utilities
-import { loadFromStorage, saveToStorage, STORAGE_KEYS } from './utils/storage';
-
 /**
- * GradualApp - A step-by-step approach to add main App functionality
- * This allows us to identify which part is causing issues
+ * GradualApp component
+ * A step-by-step approach to adding complexity back to the app
+ * to identify where the issue occurs
  */
 const GradualApp = () => {
-  // Simple routing state 
-  const [currentPage, setCurrentPage] = useState('home');
-  
-  // Test local storage functionality
-  const [storageTest, setStorageTest] = useState({
-    saved: false,
-    loaded: null
+  // State for tracking which components are enabled
+  const [enabledFeatures, setEnabledFeatures] = useState({
+    storage: false,
+    pricingPage: false,
+    valuePage: false,
+    setupWizard: false
   });
   
-  // Test local storage operations
-  const testStorage = () => {
-    try {
-      // Save a test value
-      saveToStorage(STORAGE_KEYS.SETTINGS, { test: 'Storage test successful!' });
-      setStorageTest(prev => ({ ...prev, saved: true }));
-      
-      // Load the test value
-      const loadedData = loadFromStorage(STORAGE_KEYS.SETTINGS);
-      setStorageTest(prev => ({ ...prev, loaded: loadedData }));
-    } catch (error) {
-      console.error("Storage test error:", error);
-      setStorageTest({ 
-        saved: false, 
-        loaded: { error: error.message } 
-      });
-    }
+  // Current page state (simplified version)
+  const [currentPage, setCurrentPage] = useState('home');
+  
+  // Toggle a feature on/off
+  const toggleFeature = (feature) => {
+    setEnabledFeatures(prev => ({
+      ...prev,
+      [feature]: !prev[feature]
+    }));
   };
   
   return (
@@ -46,29 +34,23 @@ const GradualApp = () => {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-xl font-bold text-gray-800">Dynamic Pricing Optimizer</h1>
-              <p className="text-sm text-gray-500">Make data-driven pricing decisions</p>
+              <p className="text-sm text-gray-500">Incremental Testing Mode</p>
             </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 className="flex items-center gap-1"
-                onClick={() => setCurrentPage(currentPage === 'home' ? 'test' : 'home')}
+                onClick={() => setCurrentPage('home')}
               >
-                {currentPage === 'home' ? 'Test Page' : 'Home'} <ChevronRight className="h-4 w-4" />
+                Home
               </Button>
-              
               <Button
-                variant="ghost"
-                size="icon"
-                onClick={testStorage}
-                title="Test Storage"
+                variant="outline"
+                className="flex items-center gap-1"
+                onClick={() => setCurrentPage('debug')}
               >
-                <PlusCircle className="h-5 w-5" />
+                Debug Panel
               </Button>
-              
-              <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                Diagnostic Mode
-              </span>
             </div>
           </div>
         </div>
@@ -76,46 +58,90 @@ const GradualApp = () => {
       
       <main className="container mx-auto py-6">
         {currentPage === 'home' ? (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Gradual App Testing</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className="p-6 bg-white shadow rounded-lg">
+            <h2 className="text-2xl font-bold mb-4">Gradual App Testing</h2>
+            <p className="mb-4">
+              This version of the app allows incrementally enabling features to identify where issues occur.
+              Go to the Debug Panel to enable features one by one.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="p-6 bg-white shadow rounded-lg">
+              <h2 className="text-2xl font-bold mb-4">Debug Panel</h2>
               <p className="mb-4">
-                This is a step-by-step approach to bring back the main App functionality.
-                Use the buttons above to test navigation and storage functionality.
+                Enable features one by one to identify where the issue occurs.
+                Start with storage, then add other features incrementally.
               </p>
               
-              <div className="bg-gray-100 p-4 rounded-md mb-4">
-                <h3 className="font-medium mb-2">Storage Test Results:</h3>
-                <p><strong>Save operation:</strong> {storageTest.saved ? 'Successful' : 'Not tested yet'}</p>
-                <p><strong>Load operation:</strong> {storageTest.loaded ? 'Successful' : 'Not tested yet'}</p>
-                {storageTest.loaded && (
-                  <pre className="bg-white p-2 rounded mt-2 text-sm overflow-auto">
-                    {JSON.stringify(storageTest.loaded, null, 2)}
-                  </pre>
-                )}
+              <div className="space-y-4 mt-6">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <h3 className="font-medium">Local Storage</h3>
+                    <p className="text-sm text-gray-500">Enable loading/saving from local storage</p>
+                  </div>
+                  <Button
+                    variant={enabledFeatures.storage ? "default" : "outline"}
+                    onClick={() => toggleFeature('storage')}
+                  >
+                    {enabledFeatures.storage ? 'Enabled' : 'Disabled'}
+                  </Button>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <h3 className="font-medium">Pricing Optimizer Page</h3>
+                    <p className="text-sm text-gray-500">Enable the main pricing page</p>
+                  </div>
+                  <Button
+                    variant={enabledFeatures.pricingPage ? "default" : "outline"}
+                    onClick={() => toggleFeature('pricingPage')}
+                    disabled={!enabledFeatures.storage}
+                  >
+                    {enabledFeatures.pricingPage ? 'Enabled' : 'Disabled'}
+                  </Button>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <h3 className="font-medium">Value Assessment Page</h3>
+                    <p className="text-sm text-gray-500">Enable the value assessment page</p>
+                  </div>
+                  <Button
+                    variant={enabledFeatures.valuePage ? "default" : "outline"}
+                    onClick={() => toggleFeature('valuePage')}
+                    disabled={!enabledFeatures.storage}
+                  >
+                    {enabledFeatures.valuePage ? 'Enabled' : 'Disabled'}
+                  </Button>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <h3 className="font-medium">Setup Wizard</h3>
+                    <p className="text-sm text-gray-500">Enable the setup wizard component</p>
+                  </div>
+                  <Button
+                    variant={enabledFeatures.setupWizard ? "default" : "outline"}
+                    onClick={() => toggleFeature('setupWizard')}
+                    disabled={!enabledFeatures.storage}
+                  >
+                    {enabledFeatures.setupWizard ? 'Enabled' : 'Disabled'}
+                  </Button>
+                </div>
               </div>
               
-              <div className="flex justify-end">
-                <Button 
-                  onClick={() => window.location.reload()}
-                  variant="outline"
-                >
-                  Reload Page
-                </Button>
+              <div className="mt-8 p-4 bg-yellow-50 text-yellow-800 rounded-lg">
+                <h3 className="font-medium mb-2">Enabled Features Status:</h3>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Storage: {enabledFeatures.storage ? '✅ Enabled' : '❌ Disabled'}</li>
+                  <li>Pricing Page: {enabledFeatures.pricingPage ? '✅ Enabled' : '❌ Disabled'}</li>
+                  <li>Value Page: {enabledFeatures.valuePage ? '✅ Enabled' : '❌ Disabled'}</li>
+                  <li>Setup Wizard: {enabledFeatures.setupWizard ? '✅ Enabled' : '❌ Disabled'}</li>
+                </ul>
               </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Test Page</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>This is a test page to verify navigation functionality.</p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
       </main>
       
