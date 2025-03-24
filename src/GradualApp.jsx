@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Settings, PlusCircle } from 'lucide-react';
+import { ChevronRight, Settings, PlusCircle, Layers } from 'lucide-react';
 
 // Import storage utilities
 import { STORAGE_KEYS, saveToStorage, loadFromStorage } from './utils/storage';
+
+// Import test page
+import ComponentTestPage from './pages/ComponentTestPage';
 
 /**
  * Enhanced GradualApp component
@@ -227,6 +230,28 @@ const GradualApp = () => {
     }
   };
   
+  // If we're showing the component test page, render it directly
+  if (currentPage === 'componentTest') {
+    return (
+      <div>
+        <div className="bg-white shadow-sm">
+          <div className="container mx-auto p-4">
+            <div className="flex justify-between items-center">
+              <span className="font-bold">UI Component Test Mode</span>
+              <button 
+                className="px-3 py-1.5 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+                onClick={() => setCurrentPage('home')}
+              >
+                Return to Gradual Test App
+              </button>
+            </div>
+          </div>
+        </div>
+        <ComponentTestPage />
+      </div>
+    );
+  }
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow">
@@ -261,6 +286,13 @@ const GradualApp = () => {
               >
                 Errors {errors.length > 0 && <span className="ml-1 px-1.5 py-0.5 text-xs bg-red-200 rounded-full">{errors.length}</span>}
               </button>
+              <button
+                className="px-3 py-1.5 rounded-md flex items-center gap-1 bg-indigo-100 text-indigo-800"
+                onClick={() => setCurrentPage('componentTest')}
+              >
+                <Layers className="h-4 w-4" />
+                <span>Component Test</span>
+              </button>
             </div>
           </div>
         </div>
@@ -281,6 +313,7 @@ const GradualApp = () => {
                 <li>Check the <strong>Logs</strong> tab to see what actions have been performed</li>
                 <li>If errors occur, check the <strong>Errors</strong> tab for details</li>
                 <li>Use the test buttons to verify each component's functionality</li>
+                <li>Click <strong>Component Test</strong> to test UI components in isolation</li>
               </ol>
             </div>
             
@@ -316,8 +349,28 @@ const GradualApp = () => {
                   >
                     Export Diagnostics
                   </button>
+                  <button 
+                    className="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700"
+                    onClick={() => setCurrentPage('componentTest')}
+                  >
+                    Test UI Components
+                  </button>
                 </div>
               </div>
+            </div>
+            
+            <div className="mt-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <h3 className="font-semibold text-yellow-800 mb-2">Troubleshooting Insights:</h3>
+              <p className="text-yellow-700 mb-2">
+                If you're having trouble with the main application, try these recommended steps:
+              </p>
+              <ol className="list-decimal pl-5 space-y-1 text-yellow-800">
+                <li>Use the <strong>Component Test</strong> to check if individual UI components render correctly</li>
+                <li>Enable <strong>Local Storage</strong> first, then test it to ensure data persistence works</li>
+                <li>Enable UI components one by one, and check the error log after each</li>
+                <li>If a specific module fails, check browser console for detailed error messages</li>
+                <li>Export diagnostics and share when reporting issues</li>
+              </ol>
             </div>
           </div>
         )}
