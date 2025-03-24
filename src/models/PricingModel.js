@@ -19,6 +19,14 @@ class PricingModel {
   }
 
   /**
+   * Get access to customer segments
+   * @returns {Array} Customer segments
+   */
+  get segments() {
+    return this.customerSegmentModel.segments || [];
+  }
+
+  /**
    * Add a competitor for market comparison
    * @param {string} name - Competitor name
    * @param {number} price - Competitor price
@@ -67,11 +75,36 @@ class PricingModel {
    * @param {string} description - Optional description
    * @returns {string} New segment ID
    */
-  addCustomerSegment(name, size, priceElasticity, description = '') {
+  addSegment(name, size, priceElasticity, description = '') {
     // Convert priceElasticity from 1-10 scale to -10 to 0 scale
     // Where 1 = least sensitive (-0.5) and 10 = most sensitive (-10)
     const elasticity = -((priceElasticity / 10) * 9.5 + 0.5);
     return this.customerSegmentModel.addSegment(name, size, elasticity, description);
+  }
+
+  /**
+   * Update an existing customer segment
+   * @param {string} id - Segment ID
+   * @param {Object} segmentData - Updated segment data
+   * @returns {boolean} Success flag
+   */
+  updateSegment(id, segmentData) {
+    // If price elasticity is being updated, convert it
+    if (segmentData.priceElasticity !== undefined) {
+      const elasticity = -((segmentData.priceElasticity / 10) * 9.5 + 0.5);
+      segmentData = { ...segmentData, priceElasticity: elasticity };
+    }
+    
+    return this.customerSegmentModel.updateSegment(id, segmentData);
+  }
+
+  /**
+   * Remove a customer segment
+   * @param {string} id - Segment ID
+   * @returns {boolean} Success flag
+   */
+  removeSegment(id) {
+    return this.customerSegmentModel.removeSegment(id);
   }
 
   /**
@@ -294,13 +327,45 @@ class PricingModel {
     const basePrice = baseRecommendation.price;
     
     // Calculate segment-specific prices
-    const segmentPrices = this.customerSegmentModel.calculateSegmentPrices(basePrice);
+    const segmentPrices = this.calculateSegmentPrices(basePrice);
     
     return {
       basePrice,
       baseStrategy,
       segmentPrices
     };
+  }
+
+  /**
+   * Calculate segment-specific prices directly
+   * @param {number} basePrice - Base price to adjust for segments
+   * @returns {Array} Segment prices with adjustments
+   */
+  calculateSegmentPrices(basePrice) {
+    return this.segments.map(segment => {
+      // Convert elasticity to a price factor (1 = no change, <1 = discount, >1 = premium)
+      // Elasticity is negative, with more negative values indicating higher price sensitivity
+      // Map elasticity range of -10 to 0 to pricing factor of 0.6 to 1.2
+      const elasticityFactor = 1 - (Math.min(Math.abs(segment.priceElasticity), 10) / 50); // Range: 0.8 to 1
+      const willingness = segment.willingness || 1; // If willingness is already calculated use it
+      
+      // Calculate segment-specific price
+      const segmentPrice = basePrice * (willingness || elasticityFactor);
+      
+      // Calculate percentage difference from base price
+      const priceDiffPercent = ((segmentPrice - basePrice) / basePrice) * 100;
+      
+      return {
+        id: segment.id,
+        name: segment.name,
+        size: segment.size,
+        priceElasticity: segment.priceElasticity,
+        willingness: willingness || elasticityFactor,
+        price: segmentPrice,
+        priceDiffPercent,
+        isPremium: priceDiffPercent > 0
+      };
+    });
   }
 
   /**
@@ -321,11 +386,11 @@ class PricingModel {
    */
   getAllPriceRecommendations() {
     return {
-      costPlus: this.getPriceRecommendation('cost-plus'),
-      competitor: this.getPriceRecommendation('competitor'),
-      value: this.getPriceRecommendation('value'),
-      elasticity: this.getPriceRecommendation('elasticity'),
-      optimal: this.getPriceRecommendation('optimal')
+      'cost-plus': this.getPriceRecommendation('cost-plus'),
+      'competitor': this.getPriceRecommendation('competitor'),
+      'value': this.getPriceRecommendation('value'),
+      'elasticity': this.getPriceRecommendation('elasticity'),
+      'optimal': this.getPriceRecommendation('optimal')
     };
   }
 
@@ -351,7 +416,7 @@ class PricingModel {
   getImplementationGuidance(selectedStrategy = 'optimal') {
     const recommendation = this.getPriceRecommendation(selectedStrategy);
     const priceSensitivity = this.calculatePriceSensitivity();
-    const hasSegments = this.customerSegmentModel.segments.length > 0;
+    const hasSegments = this.segments.length > 0;
     
     // Generate appropriate implementation steps
     const steps = [];
@@ -378,8 +443,6 @@ class PricingModel {
       
       // Add segment-specific recommendations if available
       if (hasSegments) {
-        const segmentRecommendations = this.getSegmentPriceRecommendations(selectedStrategy);
-        
         steps.push({
           title: "Implement segment-specific pricing",
           description: `Tailor your pricing for different segments based on their willingness to pay and needs.`
@@ -400,13 +463,39 @@ class PricingModel {
       description: "Start with a small segment of prospects to validate this pricing approach."
     });
     
+    // Generate segment-specific communication tips
+    const segmentCommunicationTips = [];
+    if (hasSegments) {
+      // Sort segments by price sensitivity (most to least)
+      const sortedSegments = [...this.segments].sort((a, b) => Math.abs(b.priceElasticity) - Math.abs(a.priceElasticity));
+      
+      if (sortedSegments.length > 0) {
+        const mostSensitiveSegment = sortedSegments[0];
+        segmentCommunicationTips.push(
+          `For price-sensitive segments like "${mostSensitiveSegment.name}", focus on ROI and cost savings benefits.`
+        );
+      }
+      
+      if (sortedSegments.length > 1) {
+        const leastSensitiveSegment = sortedSegments[sortedSegments.length - 1];
+        segmentCommunicationTips.push(
+          `For value-focused segments like "${leastSensitiveSegment.name}", emphasize unique capabilities and quality.`
+        );
+      }
+    }
+    
+    // Combine standard tips with segment-specific ones
+    const standardTips = this.getPriceCommunicationTips(selectedStrategy);
+    const communicationTips = [...standardTips, ...segmentCommunicationTips];
+    
     return {
       recommendedPrice: recommendation.price,
       rationale: recommendation.explanation,
       estimatedMargin: recommendation.margin,
       implementationSteps: steps,
-      communicationTips: this.getPriceCommunicationTips(selectedStrategy),
-      segmentRecommendations: hasSegments ? this.getSegmentPriceRecommendations(selectedStrategy) : null
+      communicationTips: communicationTips,
+      segmentRecommendations: hasSegments ? this.getSegmentPriceRecommendations(selectedStrategy) : null,
+      priceSensitivity: priceSensitivity
     };
   }
 
@@ -424,11 +513,11 @@ class PricingModel {
     
     // Strategy-specific tips
     switch (strategy) {
-      case 'premium':
-        tips.push("Emphasize unique capabilities that competitors can't match");
-        tips.push("Highlight the risks/costs of choosing a lower-priced alternative");
+      case 'cost-plus':
+        tips.push("Highlight the quality and reliability your cost structure enables");
+        tips.push("Use transparent breakdowns to justify pricing when appropriate");
         break;
-        
+      
       case 'competitor':
         tips.push("Create a comparison chart showing your advantages vs. similarly priced competitors");
         tips.push("Address potential objections about choosing you over established alternatives");
@@ -442,6 +531,11 @@ class PricingModel {
       case 'elasticity':
         tips.push("Segment your messaging based on different customer groups");
         tips.push("Offer appropriate discounts or premiums based on segment price sensitivity");
+        break;
+        
+      case 'optimal':
+        tips.push("Balance value messaging with competitive positioning");
+        tips.push("Adapt your communication style to each prospect's value perception");
         break;
     }
     
