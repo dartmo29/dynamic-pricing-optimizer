@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { FileText, DollarSign, TrendingUp, BarChart, Download } from 'lucide-react';
+import { FileText, DollarSign, TrendingUp, BarChart } from 'lucide-react';
 
 // Hooks
 import useCostAnalysis from '../hooks/useCostAnalysis';
@@ -15,6 +15,7 @@ import usePricingStrategy from '../hooks/usePricingStrategy';
 // Cost Analysis Components
 import CostStructureForm from '../components/cost-analysis/CostStructureForm';
 import CostBreakdownChart from '../components/cost-analysis/CostBreakdownChart';
+import BreakEvenAnalysisChart from '../components/cost-analysis/BreakEvenAnalysisChart';
 
 // Pricing Strategy Components
 import MarketPositionSelector from '../components/pricing-strategy/MarketPositionSelector';
@@ -22,6 +23,10 @@ import CompetitorForm from '../components/pricing-strategy/CompetitorForm';
 import ValueFactorForm from '../components/pricing-strategy/ValueFactorForm';
 import PricingStrategyDashboard from '../components/pricing-strategy/PricingStrategyDashboard';
 import ImplementationGuidance from '../components/pricing-strategy/ImplementationGuidance';
+
+// PDF Export
+import { PdfExportButton } from '../components/ui/pdf-export-button';
+import { prepareExportData } from '../utils/pdfExport';
 
 /**
  * Pricing Optimizer Page component
@@ -60,10 +65,21 @@ const PricingOptimizerPage = () => {
   };
   
   /**
-   * Export to PDF (placeholder)
+   * Prepare export data for PDF
    */
-  const handleExportToPdf = () => {
-    alert('In a full implementation, this would generate a PDF report of your pricing strategy.');
+  const getExportData = () => {
+    return prepareExportData(costAnalysis, pricingStrategy);
+  };
+  
+  // Get recommended price
+  const getRecommendedPrice = () => {
+    if (!pricingStrategy.priceRecommendations || 
+        !pricingStrategy.selectedStrategy || 
+        !pricingStrategy.priceRecommendations[pricingStrategy.selectedStrategy]) {
+      return 0;
+    }
+    
+    return pricingStrategy.priceRecommendations[pricingStrategy.selectedStrategy].price;
   };
   
   return (
@@ -99,6 +115,15 @@ const PricingOptimizerPage = () => {
                 ...costAnalysis.costBreakdown, 
                 targetMargin: costAnalysis.targetMargin
               }} />
+              
+              {costAnalysis.costBreakdown.total > 0 && getRecommendedPrice() > 0 && (
+                <BreakEvenAnalysisChart 
+                  costBreakdown={costAnalysis.costBreakdown}
+                  targetMargin={costAnalysis.targetMargin}
+                  price={getRecommendedPrice()}
+                  monthlyVolume={costAnalysis.expectedVolume}
+                />
+              )}
             </div>
           </div>
         </TabsContent>
@@ -138,9 +163,11 @@ const PricingOptimizerPage = () => {
               
               {Object.keys(pricingStrategy.priceRecommendations).length > 0 && (
                 <div className="flex justify-end mt-6">
-                  <Button onClick={handleExportToPdf} variant="outline" className="flex items-center gap-2">
-                    <Download className="h-4 w-4" /> Export Strategies to PDF
-                  </Button>
+                  <PdfExportButton
+                    exportType="pricing"
+                    data={getExportData()}
+                    label="Export Strategies to PDF"
+                  />
                 </div>
               )}
             </div>
@@ -150,10 +177,20 @@ const PricingOptimizerPage = () => {
         {/* Implementation Tab */}
         <TabsContent value="implementation">
           {pricingStrategy.implementationGuidance ? (
-            <ImplementationGuidance 
-              guidance={pricingStrategy.implementationGuidance} 
-              strategyName={pricingStrategy.selectedStrategy} 
-            />
+            <div className="space-y-6">
+              <ImplementationGuidance 
+                guidance={pricingStrategy.implementationGuidance} 
+                strategyName={pricingStrategy.selectedStrategy} 
+              />
+              
+              <div className="flex justify-end">
+                <PdfExportButton
+                  exportType="pricing"
+                  data={getExportData()}
+                  label="Export Implementation Plan to PDF"
+                />
+              </div>
+            </div>
           ) : (
             <div className="text-center py-12">
               <h3 className="text-lg font-medium mb-2">No implementation plan available</h3>
@@ -227,10 +264,19 @@ const PricingOptimizerPage = () => {
                 </div>
               </div>
               
+              <BreakEvenAnalysisChart 
+                costBreakdown={costAnalysis.costBreakdown}
+                targetMargin={costAnalysis.targetMargin}
+                price={getRecommendedPrice()}
+                monthlyVolume={costAnalysis.expectedVolume}
+              />
+              
               <div className="flex justify-end">
-                <Button onClick={handleExportToPdf} variant="outline" className="flex items-center gap-2">
-                  <Download className="h-4 w-4" /> Export Dashboard to PDF
-                </Button>
+                <PdfExportButton
+                  exportType="dashboard"
+                  data={getExportData()}
+                  label="Export Dashboard to PDF"
+                />
               </div>
             </div>
           ) : (
