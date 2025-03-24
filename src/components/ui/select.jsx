@@ -1,6 +1,6 @@
 /**
  * select.jsx
- * Custom select component with dropdown
+ * Select component with dropdown functionality
  */
 
 import * as React from "react";
@@ -8,43 +8,90 @@ import { cn } from "@/lib/utils";
 import { ChevronDown } from 'lucide-react';
 
 /**
- * Select component
- * @param {Object} props Component props
- * @returns {JSX.Element} Styled select component
+ * Select Root component
  */
-const Select = React.forwardRef(({ className, children, ...props }, ref) => {
+const Select = React.forwardRef(({ children, ...props }, ref) => {
   return (
-    <div className="relative">
-      <select
-        className={cn(
-          "flex h-10 w-full appearance-none rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-          className
-        )}
-        ref={ref}
-        {...props}
-      >
-        {children}
-      </select>
-      <ChevronDown className="absolute right-3 top-3 h-4 w-4 pointer-events-none text-gray-500" />
+    <div className="relative" ref={ref} {...props}>
+      {children}
     </div>
   );
 });
 Select.displayName = "Select";
 
 /**
- * Select Option component
- * @param {Object} props Component props
- * @returns {JSX.Element} Select option component
+ * Select Trigger component
  */
-const SelectOption = React.forwardRef(({ className, ...props }, ref) => {
+const SelectTrigger = React.forwardRef(({ className, children, ...props }, ref) => {
   return (
-    <option
-      className={cn("text-sm", className)}
+    <div
       ref={ref}
+      className={cn(
+        "flex h-10 w-full items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        className
+      )}
       {...props}
-    />
+    >
+      {children}
+      <ChevronDown className="h-4 w-4 opacity-50" />
+    </div>
   );
 });
-SelectOption.displayName = "SelectOption";
+SelectTrigger.displayName = "SelectTrigger";
 
-export { Select, SelectOption };
+/**
+ * Select Value component
+ */
+const SelectValue = React.forwardRef(({ className, ...props }, ref) => {
+  return (
+    <span ref={ref} className={cn("block truncate", className)} {...props} />
+  );
+});
+SelectValue.displayName = "SelectValue";
+
+/**
+ * Select Content component
+ */
+const SelectContent = React.forwardRef(({ className, children, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm",
+        className
+      )}
+      {...props}
+    >
+      <div className="p-1">{children}</div>
+    </div>
+  );
+});
+SelectContent.displayName = "SelectContent";
+
+/**
+ * Select Item component
+ */
+const SelectItem = React.forwardRef(({ className, children, value, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "relative flex cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none data-[selected]:bg-blue-100 data-[selected]:text-blue-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-gray-100",
+        className
+      )}
+      data-value={value}
+      {...props}
+    >
+      <span className="block truncate">{children}</span>
+    </div>
+  );
+});
+SelectItem.displayName = "SelectItem";
+
+export { 
+  Select, 
+  SelectTrigger, 
+  SelectValue, 
+  SelectContent, 
+  SelectItem 
+};
