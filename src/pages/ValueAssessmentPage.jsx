@@ -1,218 +1,197 @@
 /**
  * ValueAssessmentPage.jsx
- * Page component for the value assessment tools
+ * Page component for value assessment
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, BarChart, Calculator } from 'lucide-react';
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Button } from '../components/ui/button';
+import { FileText, CheckCircle, BarChart, Zap } from 'lucide-react';
 
 // Value Assessment Components
-import ValueAssessmentMatrix from '../components/value-assessment/ValueAssessmentMatrix';
-import CustomerValueCalculator from '../components/value-assessment/CustomerValueCalculator';
-
-// PDF Export
-import { PdfExportButton } from '../components/ui/pdf-export-button';
-import { prepareExportData } from '../utils/pdfExport';
+import CompetitiveAnalysis from '../components/value-assessment/CompetitiveAnalysis';
+import ValuePropositionEditor from '../components/value-assessment/ValuePropositionEditor';
+import ValueMapping from '../components/value-assessment/ValueMapping';
+import ValueCommunication from '../components/value-assessment/ValueCommunication';
 
 // Hooks
-import useCostAnalysis from '../hooks/useCostAnalysis';
-import usePricingStrategy from '../hooks/usePricingStrategy';
+import useValueAssessment from '../hooks/useValueAssessment';
 
+// PDF Export
+import { exportToPdf } from '../utils/pdfExport';
+
+/**
+ * PDF Export Button component
+ */
+const PdfExportButton = ({ exportType, data, label }) => {
+  const handleExport = () => {
+    if (exportType === 'value') {
+      exportToPdf(data, exportType);
+    }
+  };
+  
+  return (
+    <Button onClick={handleExport} className="flex items-center gap-2">
+      <FileText className="h-4 w-4" />
+      {label || 'Export to PDF'}
+    </Button>
+  );
+};
+
+/**
+ * Value Assessment Page component
+ * 
+ * @returns {JSX.Element} Value assessment page
+ */
 const ValueAssessmentPage = () => {
   // State for active tab
-  const [activeTab, setActiveTab] = useState('value-positioning');
+  const [activeTab, setActiveTab] = useState('competitive-analysis');
   
-  // Use cost analysis hook
-  const costAnalysis = useCostAnalysis();
-  
-  // Use pricing strategy hook with the cost model
-  const pricingStrategy = usePricingStrategy(costAnalysis.costModel);
-  
-  // Calculate your value score
-  const yourValueScore = useMemo(() => {
-    if (!pricingStrategy.valueFactors || pricingStrategy.valueFactors.length === 0) return 0;
-    
-    const totalImportance = pricingStrategy.valueFactors.reduce(
-      (sum, factor) => sum + factor.importance, 0
-    );
-    
-    if (totalImportance === 0) return 0;
-    
-    const weightedScore = pricingStrategy.valueFactors.reduce(
-      (sum, factor) => sum + (factor.importance * factor.score), 0
-    );
-    
-    return weightedScore / totalImportance;
-  }, [pricingStrategy.valueFactors]);
-  
-  // Get recommended price
-  const recommendedPrice = useMemo(() => {
-    if (!pricingStrategy.priceRecommendations || 
-        !pricingStrategy.selectedStrategy || 
-        !pricingStrategy.priceRecommendations[pricingStrategy.selectedStrategy]) {
-      return 0;
-    }
-    
-    return pricingStrategy.priceRecommendations[pricingStrategy.selectedStrategy].price;
-  }, [pricingStrategy.priceRecommendations, pricingStrategy.selectedStrategy]);
+  // Use value assessment hook
+  const valueAssessment = useValueAssessment();
   
   /**
    * Prepare export data for PDF
    */
   const getExportData = () => {
-    const baseData = prepareExportData(costAnalysis, pricingStrategy);
-    
     return {
-      ...baseData,
-      yourValueScore,
-      customerValueInputs: {
-        currentCost: 100,
-        timeValue: 50,
-        riskCost: 20,
-        opportunityCost: 30
-      }
+      valueAssessment
     };
   };
   
-  // Check if we have enough data
-  const hasRequiredData = useMemo(() => {
-    return costAnalysis.costBreakdown.total > 0 && 
-           pricingStrategy.valueFactors.length > 0 && 
-           pricingStrategy.competitors.length > 0 &&
-           recommendedPrice > 0;
-  }, [costAnalysis.costBreakdown.total, pricingStrategy.valueFactors, pricingStrategy.competitors, recommendedPrice]);
-  
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Value Assessment</h1>
-        <Button 
-          variant="ghost" 
-          onClick={() => window.location.href = '#'} 
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back to Main Dashboard
-        </Button>
-      </div>
+      <h1 className="text-2xl font-bold mb-6">Value Assessment</h1>
       
-      {!hasRequiredData ? (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center py-8">
-              <h3 className="text-lg font-medium mb-2">Complete the pricing process first</h3>
-              <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                To use the value assessment tools, you need to complete the cost analysis and 
-                pricing strategy sections first.
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid grid-cols-4 mb-6">
+          <TabsTrigger value="competitive-analysis" className="flex items-center gap-2">
+            <BarChart className="h-4 w-4" /> Competitive Analysis
+          </TabsTrigger>
+          <TabsTrigger value="value-proposition" className="flex items-center gap-2">
+            <Zap className="h-4 w-4" /> Value Proposition
+          </TabsTrigger>
+          <TabsTrigger value="value-mapping" className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4" /> Value Mapping
+          </TabsTrigger>
+          <TabsTrigger value="value-communication" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" /> Communication
+          </TabsTrigger>
+        </TabsList>
+        
+        {/* Competitive Analysis Tab */}
+        <TabsContent value="competitive-analysis">
+          <CompetitiveAnalysis 
+            competitors={valueAssessment.competitors}
+            onUpdateCompetitor={valueAssessment.updateCompetitor}
+            onAddCompetitor={valueAssessment.addCompetitor}
+            onRemoveCompetitor={valueAssessment.removeCompetitor}
+          />
+          
+          {valueAssessment.competitors.length > 0 && (
+            <div className="flex justify-end mt-6">
+              <PdfExportButton
+                exportType="value"
+                data={getExportData()}
+                label="Export Competitive Analysis to PDF"
+              />
+            </div>
+          )}
+        </TabsContent>
+        
+        {/* Value Proposition Tab */}
+        <TabsContent value="value-proposition">
+          {valueAssessment.competitors.length > 0 ? (
+            <div className="space-y-6">
+              <ValuePropositionEditor
+                valueProposition={valueAssessment.valueProposition}
+                onUpdate={valueAssessment.updateValueProposition}
+              />
+              
+              <div className="flex justify-end">
+                <PdfExportButton
+                  exportType="value"
+                  data={getExportData()}
+                  label="Export Value Proposition to PDF"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <h3 className="text-lg font-medium mb-2">No competitive data available</h3>
+              <p className="text-gray-500 mb-4">
+                Please complete the Competitive Analysis first to develop your Value Proposition.
               </p>
-              <Button onClick={() => window.location.href = '#'}>
-                Go to Pricing Optimizer
+              <Button onClick={() => setActiveTab('competitive-analysis')}>
+                Go to Competitive Analysis
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-2 mb-6">
-              <TabsTrigger value="value-positioning" className="flex items-center gap-2">
-                <BarChart className="h-4 w-4" /> Value-Price Positioning
-              </TabsTrigger>
-              <TabsTrigger value="customer-value" className="flex items-center gap-2">
-                <Calculator className="h-4 w-4" /> Customer Value Calculator
-              </TabsTrigger>
-            </TabsList>
-            
-            {/* Value Positioning Tab */}
-            <TabsContent value="value-positioning">
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="md:col-span-2">
-                  <ValueAssessmentMatrix 
-                    competitors={pricingStrategy.competitors}
-                    valueFactors={pricingStrategy.valueFactors}
-                    yourPrice={recommendedPrice}
-                    yourValue={yourValueScore}
-                  />
-                </div>
-                
-                <div className="md:col-span-1 space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg font-medium">Positioning Summary</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <p className="text-sm text-gray-500">Your Price</p>
-                        <p className="text-lg font-bold">${recommendedPrice.toFixed(2)}</p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-sm text-gray-500">Your Value Score</p>
-                        <p className="text-lg font-bold">{(yourValueScore).toFixed(1)} / 10</p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-sm text-gray-500">Market Position</p>
-                        <p className="text-lg font-bold">{pricingStrategy.marketPosition}</p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-sm text-gray-500">Pricing Strategy</p>
-                        <p className="text-lg font-bold">{pricingStrategy.selectedStrategy}</p>
-                      </div>
-                      
-                      <div className="pt-4">
-                        <h4 className="text-sm font-medium mb-2">Key Value Factors</h4>
-                        <ul className="space-y-2">
-                          {pricingStrategy.valueFactors
-                            .sort((a, b) => b.importance * b.score - a.importance * a.score)
-                            .slice(0, 3)
-                            .map((factor, index) => (
-                              <li key={index} className="flex justify-between items-center text-sm">
-                                <span>{factor.name}</span>
-                                <span className="font-medium">{factor.score}/10</span>
-                              </li>
-                            ))
-                          }
-                        </ul>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <PdfExportButton
-                    exportType="value"
-                    data={getExportData()}
-                    variant="outline"
-                    className="w-full"
-                    label="Export Positioning Analysis"
-                  />
-                </div>
-              </div>
-            </TabsContent>
-            
-            {/* Customer Value Calculator Tab */}
-            <TabsContent value="customer-value">
-              <div className="grid md:grid-cols-1 lg:grid-cols-1 gap-6">
-                <CustomerValueCalculator 
-                  valueFactors={pricingStrategy.valueFactors}
-                  recommendedPrice={recommendedPrice}
+          )}
+        </TabsContent>
+        
+        {/* Value Mapping Tab */}
+        <TabsContent value="value-mapping">
+          {valueAssessment.valueProposition.statement ? (
+            <div className="space-y-6">
+              <ValueMapping
+                valueProposition={valueAssessment.valueProposition}
+                valueMap={valueAssessment.valueMap}
+                onUpdateValueMap={valueAssessment.updateValueMap}
+              />
+              
+              <div className="flex justify-end">
+                <PdfExportButton
+                  exportType="value"
+                  data={getExportData()}
+                  label="Export Value Mapping to PDF"
                 />
-                
-                <div className="flex justify-end">
-                  <PdfExportButton
-                    exportType="value"
-                    data={getExportData()}
-                    variant="outline"
-                    label="Export Value Calculator to PDF"
-                  />
-                </div>
               </div>
-            </TabsContent>
-          </Tabs>
-        </>
-      )}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <h3 className="text-lg font-medium mb-2">No value proposition available</h3>
+              <p className="text-gray-500 mb-4">
+                Please complete the Value Proposition first to map your value to customer needs.
+              </p>
+              <Button onClick={() => setActiveTab('value-proposition')}>
+                Go to Value Proposition
+              </Button>
+            </div>
+          )}
+        </TabsContent>
+        
+        {/* Value Communication Tab */}
+        <TabsContent value="value-communication">
+          {valueAssessment.valueMap.customerNeeds.length > 0 ? (
+            <div className="space-y-6">
+              <ValueCommunication
+                valueProposition={valueAssessment.valueProposition}
+                valueMap={valueAssessment.valueMap}
+                communication={valueAssessment.communication}
+                onUpdateCommunication={valueAssessment.updateCommunication}
+              />
+              
+              <div className="flex justify-end">
+                <PdfExportButton
+                  exportType="value"
+                  data={getExportData()}
+                  label="Export Communication Plan to PDF"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <h3 className="text-lg font-medium mb-2">No value mapping available</h3>
+              <p className="text-gray-500 mb-4">
+                Please complete the Value Mapping first to develop your communication plan.
+              </p>
+              <Button onClick={() => setActiveTab('value-mapping')}>
+                Go to Value Mapping
+              </Button>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
