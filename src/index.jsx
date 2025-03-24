@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import { Button } from './components/ui/button';
@@ -7,27 +7,83 @@ import { PlusCircle, ChevronRight } from 'lucide-react';
 import SetupWizard from './components/setup/SetupWizard';
 import { loadFromStorage, saveToStorage, STORAGE_KEYS } from './utils/storage';
 
-// Only import one page to test
-import PricingOptimizerPage from './pages/PricingOptimizerPage';
+// Use dynamic imports for pages to lazy load them
+const PricingOptimizerPage = React.lazy(() => import('./pages/PricingOptimizerPage'));
 
-console.log("Starting React initialization with progressive App features...");
+console.log("Starting React initialization with lazy-loaded components...");
 
-// Progressive App with increasing functionality
+// Error Boundary for component rendering
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Error caught by error boundary:", error, errorInfo);
+    this.setState({ error, errorInfo });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Card className="bg-red-50 border-red-200">
+          <CardHeader>
+            <CardTitle className="text-red-700">Component Error</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-red-600 mb-4">An error occurred in a component:</p>
+            <pre className="bg-white p-3 rounded text-sm overflow-auto">
+              {this.state.error?.toString()}
+            </pre>
+            {this.state.errorInfo && (
+              <div className="mt-4">
+                <p className="font-medium">Component Stack:</p>
+                <pre className="bg-white p-3 rounded text-xs overflow-auto">
+                  {this.state.errorInfo.componentStack}
+                </pre>
+              </div>
+            )}
+            <Button 
+              className="mt-4" 
+              onClick={() => window.location.reload()}
+            >
+              Reload Page
+            </Button>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Progressive App with page loading
 const ProgressiveApp = () => {
   // State management (similar to main App)
-  const [currentPage, setCurrentPage] = useState('pricing');
+  const [currentPage, setCurrentPage] = useState('test');
   const [showSetupWizard, setShowSetupWizard] = useState(false);
-  const [testError, setTestError] = useState(null);
+  const [showPricingPage, setShowPricingPage] = useState(false);
+  const [error, setError] = useState(null);
   
-  // Check for setup completion (similar to main App)
+  // Check for setup completion
   useEffect(() => {
-    console.log("Running setup check effect");
     try {
-      const hasCompletedSetup = loadFromStorage(STORAGE_KEYS.SETTINGS)?.hasCompletedSetup;
-      console.log("Has completed setup:", hasCompletedSetup);
+      const settings = loadFromStorage(STORAGE_KEYS.SETTINGS);
+      console.log("Loaded settings:", settings);
+      
+      // Set some default settings if needed
+      if (!settings) {
+        saveToStorage(STORAGE_KEYS.SETTINGS, { hasCompletedSetup: true });
+      }
     } catch (error) {
-      console.error("Error in setup check:", error);
-      setTestError(error.toString());
+      console.error("Error loading settings:", error);
+      setError(error.toString());
     }
   }, []);
   
@@ -42,11 +98,10 @@ const ProgressiveApp = () => {
       setShowSetupWizard(false);
     } catch (error) {
       console.error("Error in handleSetupComplete:", error);
-      setTestError(error.toString());
+      setError(error.toString());
     }
   };
   
-  // Simplified structure similar to App.jsx but without complex page routing
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow">
@@ -60,9 +115,9 @@ const ProgressiveApp = () => {
               <Button
                 variant="outline"
                 className="flex items-center gap-1"
-                onClick={() => setCurrentPage('value-assessment')}
+                onClick={() => setCurrentPage(currentPage === 'test' ? 'pricing' : 'test')}
               >
-                Value Assessment <ChevronRight className="h-4 w-4" />
+                {currentPage === 'test' ? 'Show Pricing Page' : 'Back to Test'} <ChevronRight className="h-4 w-4" />
               </Button>
               
               <Button
@@ -83,14 +138,14 @@ const ProgressiveApp = () => {
       </header>
       
       <main className="container mx-auto py-6">
-        {testError ? (
+        {error ? (
           <Card className="bg-red-50 border-red-200">
             <CardHeader>
-              <CardTitle className="text-red-700">Test Error Detected</CardTitle>
+              <CardTitle className="text-red-700">Error Detected</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-red-600 mb-4">An error occurred during testing:</p>
-              <pre className="bg-white p-3 rounded text-sm overflow-auto">{testError}</pre>
+              <p className="text-red-600 mb-4">An error occurred:</p>
+              <pre className="bg-white p-3 rounded text-sm overflow-auto">{error}</pre>
               <Button 
                 className="mt-4" 
                 onClick={() => window.location.reload()}
@@ -100,40 +155,50 @@ const ProgressiveApp = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Progressive Test Mode</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="mb-4">
-                  This is a progressive test that includes core components from the main App.
-                </p>
-                <div className="flex gap-2">
-                  <Button onClick={() => setShowSetupWizard(true)}>
-                    Open Setup Wizard
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      try {
-                        const testPage = <PricingOptimizerPage />;
-                        console.log("PricingOptimizerPage created successfully");
-                      } catch (error) {
-                        console.error("Error creating PricingOptimizerPage:", error);
-                        setTestError(error.toString());
-                      }
-                    }}
-                  >
-                    Test Pricing Page
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          <>
+            {currentPage === 'test' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Page Loading Test</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-4">
+                    This page lets you test loading the PricingOptimizerPage component safely.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button onClick={() => setShowSetupWizard(true)}>
+                      Open Setup Wizard
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowPricingPage(!showPricingPage)}
+                    >
+                      {showPricingPage ? 'Hide Pricing Page Preview' : 'Show Pricing Page Preview'}
+                    </Button>
+                  </div>
+                  
+                  {showPricingPage && (
+                    <div className="mt-8 border rounded-lg p-4 overflow-auto max-h-96">
+                      <h3 className="text-md font-medium mb-2">Pricing Page Preview:</h3>
+                      <ErrorBoundary>
+                        <Suspense fallback={<div className="p-8 text-center">Loading pricing page...</div>}>
+                          <PricingOptimizerPage />
+                        </Suspense>
+                      </ErrorBoundary>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
             
-            {/* Uncomment to test actual page rendering */}
-            {/* {currentPage === 'pricing' && <PricingOptimizerPage />} */}
-          </div>
+            {currentPage === 'pricing' && (
+              <ErrorBoundary>
+                <Suspense fallback={<div className="p-8 text-center">Loading pricing page...</div>}>
+                  <PricingOptimizerPage />
+                </Suspense>
+              </ErrorBoundary>
+            )}
+          </>
         )}
       </main>
       
@@ -176,7 +241,9 @@ try {
   // Render the progressive app
   root.render(
     <React.StrictMode>
-      <ProgressiveApp />
+      <ErrorBoundary>
+        <ProgressiveApp />
+      </ErrorBoundary>
     </React.StrictMode>
   );
   
