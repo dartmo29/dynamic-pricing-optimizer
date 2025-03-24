@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import TestApp from './TestApp';
-// Import the main App but don't use it initially
+import MinimalApp from './MinimalApp';
+// We'll gradually work back to the main App
 // import App from './App';
 
-console.log("Starting React initialization with TestApp...");
+console.log("Starting React initialization with MinimalApp...");
 
 try {
   // Get the root element
@@ -17,17 +17,17 @@ try {
   // Create the React root
   const root = ReactDOM.createRoot(rootElement);
   
-  // Render the test app instead of the main app to verify React is working
+  // Render the minimal app to test UI components
   root.render(
     <React.StrictMode>
-      <TestApp />
-      {/* We'll switch back to this once we confirm React is working:
+      <MinimalApp />
+      {/* We'll switch back to this once we confirm UI components are working:
       <App />
       */}
     </React.StrictMode>
   );
   
-  console.log("React initialization with TestApp completed successfully");
+  console.log("React initialization with MinimalApp completed successfully");
 } catch (error) {
   console.error("Error during React initialization:", error);
   
