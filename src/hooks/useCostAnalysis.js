@@ -250,7 +250,7 @@ const useCostAnalysis = (initialData = null) => {
   };
   
   /**
-   * Get a industry template
+   * Load a industry template
    * @param {string} industry - Industry type
    * @returns {Object} Cost model with industry template
    */
@@ -267,6 +267,43 @@ const useCostAnalysis = (initialData = null) => {
     setIsDirty(true);
     
     return templateModel;
+  };
+
+  /**
+   * Import cost data from CSV
+   * @param {Object} importedData - Imported cost data
+   * @returns {boolean} Success status
+   */
+  const importCostData = (importedData) => {
+    try {
+      // Validate imported data
+      if (!importedData || 
+          !Array.isArray(importedData.directCosts) || 
+          !Array.isArray(importedData.indirectCosts) || 
+          !Array.isArray(importedData.timeCosts)) {
+        return false;
+      }
+
+      // Update state with imported data
+      setBusinessType(importedData.businessType || businessType);
+      setDirectCosts(importedData.directCosts.length ? [...importedData.directCosts] : directCosts);
+      setIndirectCosts(importedData.indirectCosts.length ? [...importedData.indirectCosts] : indirectCosts);
+      setTimeCosts(importedData.timeCosts.length ? [...importedData.timeCosts] : timeCosts);
+      
+      if (importedData.targetMargin !== undefined && importedData.targetMargin !== null) {
+        setTargetMargin(Number(importedData.targetMargin));
+      }
+      
+      if (importedData.expectedVolume !== undefined && importedData.expectedVolume !== null) {
+        setExpectedVolume(Number(importedData.expectedVolume));
+      }
+      
+      setIsDirty(true);
+      return true;
+    } catch (error) {
+      console.error('Error importing cost data:', error);
+      return false;
+    }
   };
   
   /**
@@ -352,7 +389,8 @@ const useCostAnalysis = (initialData = null) => {
     loadIndustryTemplate,
     validateAllInputs,
     getCostStructure,
-    recalculateCostBreakdown
+    recalculateCostBreakdown,
+    importCostData
   };
 };
 
