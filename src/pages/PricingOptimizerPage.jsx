@@ -9,27 +9,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Button } from '../components/ui/button';
 import { FileText, BarChart2 } from 'lucide-react';
 
+import MarketPositionSelector from '../components/pricing-strategy/MarketPositionSelector';
+import PricingStrategyDashboard from '../components/pricing-strategy/PricingStrategyDashboard';
+import ImplementationGuidance from '../components/pricing-strategy/ImplementationGuidance';
+
 // Hooks
 import useCostAnalysis from '../hooks/useCostAnalysis';
 import usePricingStrategy from '../hooks/usePricingStrategy';
 import useScenarioManager from '../hooks/useScenarioManager';
 
-// Components
-import MarketPositionSelector from '../components/pricing-strategy/MarketPositionSelector';
-import PricingStrategyDashboard from '../components/pricing-strategy/PricingStrategyDashboard';
-import ImplementationGuidance from '../components/pricing-strategy/ImplementationGuidance';
-
-
 const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
   const [activeTab, setActiveTab] = useState('market-position');
   const [marketPosition, setMarketPosition] = useState('mid-market');
-  const [selectedStrategy, setSelectedStrategy] = useState('value-based');
-  const [competitors, setCompetitors] = useState([]);
-
-  // Use hooks
-  const costAnalysis = useCostAnalysis();
-  const pricingStrategy = usePricingStrategy(costAnalysis.costModel);
-  const scenarioManager = useScenarioManager();
+  const [selectedStrategy, setSelectedStrategy] = useState('cost-plus');
+  const [competitors] = useState([]);
 
   const handlePositionChange = (position) => {
     setMarketPosition(position);
@@ -40,21 +33,8 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
   };
 
   const handleSaveAsScenario = () => {
-    const currentState = {
-      costAnalysis: costAnalysis.getData(),
-      pricingStrategy: pricingStrategy.getData(),
-      marketPosition,
-      selectedStrategy
-    };
-    scenarioManager.createScenario(`Scenario ${Date.now()}`, currentState);
+    // Implementation for saving scenario
   };
-
-  const getExportData = () => ({
-    costAnalysis: costAnalysis.getData(),
-    pricingStrategy: pricingStrategy.getData(),
-    marketPosition,
-    selectedStrategy
-  });
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -97,7 +77,6 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
               selectedStrategy={selectedStrategy}
               onSelectStrategy={handleStrategySelect}
             />
-
             <ImplementationGuidance 
               strategyName={selectedStrategy}
               competitors={competitors}
