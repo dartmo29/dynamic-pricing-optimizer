@@ -201,3 +201,129 @@ export const isValidCustomerSegment = (segment) => {
     isWithinRange(segment.priceElasticity, 1, 10)
   );
 };
+
+/**
+ * Validate a business type
+ * @param {string} type - Business type to validate
+ * @returns {boolean} True if business type is valid
+ */
+export const isValidBusinessType = (type) => {
+  return ['service', 'product', 'subscription'].includes(type);
+};
+
+/**
+ * Validate an array to ensure it exists and is not empty
+ * @param {Array} arr - Array to validate
+ * @returns {boolean} True if array exists and is not empty
+ */
+export const isValidArray = (arr) => {
+  return Array.isArray(arr) && arr.length > 0;
+};
+
+/**
+ * Validate a cost structure object
+ * @param {Object} costStructure - Cost structure to validate
+ * @returns {Object} Validation result with success status and error message
+ */
+export const validateCostStructure = (costStructure) => {
+  if (!costStructure || typeof costStructure !== 'object') {
+    return { 
+      success: false, 
+      error: 'Invalid cost structure format. Expected an object.' 
+    };
+  }
+  
+  // Check required arrays
+  if (!Array.isArray(costStructure.directCosts) || 
+      !Array.isArray(costStructure.indirectCosts) || 
+      !Array.isArray(costStructure.timeCosts)) {
+    return { 
+      success: false, 
+      error: 'Missing required cost arrays (directCosts, indirectCosts, timeCosts).' 
+    };
+  }
+  
+  // Validate business type if provided
+  if (costStructure.businessType && !isValidBusinessType(costStructure.businessType)) {
+    return { 
+      success: false, 
+      error: 'Invalid business type. Must be "service", "product", or "subscription".' 
+    };
+  }
+  
+  // Validate target margin if provided
+  if (costStructure.targetMargin !== undefined && !isValidDecimalPercentage(costStructure.targetMargin)) {
+    return { 
+      success: false, 
+      error: 'Invalid target margin. Must be a decimal between 0 and 1.' 
+    };
+  }
+  
+  // Validate expected volume if provided
+  if (costStructure.expectedVolume !== undefined && !isPositiveNumber(costStructure.expectedVolume)) {
+    return { 
+      success: false, 
+      error: 'Invalid expected volume. Must be a positive number.' 
+    };
+  }
+  
+  // Validate direct costs
+  const invalidDirectCosts = costStructure.directCosts.filter(cost => cost && !isValidDirectCost(cost));
+  if (invalidDirectCosts.length > 0) {
+    return { 
+      success: false, 
+      error: 'Invalid direct costs found. Each direct cost must have a name and a non-negative amount.' 
+    };
+  }
+  
+  // Validate indirect costs
+  const invalidIndirectCosts = costStructure.indirectCosts.filter(cost => cost && !isValidIndirectCost(cost));
+  if (invalidIndirectCosts.length > 0) {
+    return { 
+      success: false, 
+      error: 'Invalid indirect costs found. Each indirect cost must have a name, a non-negative amount, and a valid period (month/year).' 
+    };
+  }
+  
+  // Validate time costs
+  const invalidTimeCosts = costStructure.timeCosts.filter(cost => cost && !isValidTimeCost(cost));
+  if (invalidTimeCosts.length > 0) {
+    return { 
+      success: false, 
+      error: 'Invalid time costs found. Each time cost must have a name, a non-negative rate, and non-negative hours.' 
+    };
+  }
+  
+  return { success: true };
+};
+
+/**
+ * Validate data for JSON import
+ * @param {string} jsonText - JSON text to validate
+ * @returns {Object} Validation result with success status, parsed data, and error message
+ */
+export const validateJsonImport = (jsonText) => {
+  try {
+    // Check if JSON is valid
+    const data = JSON.parse(jsonText);
+    
+    // Validate cost structure
+    const validation = validateCostStructure(data);
+    if (!validation.success) {
+      return { 
+        success: false, 
+        error: validation.error 
+      };
+    }
+    
+    return { 
+      success: true, 
+      data 
+    };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: 'Invalid JSON format. Please check your data.' 
+    };
+  }
+};
