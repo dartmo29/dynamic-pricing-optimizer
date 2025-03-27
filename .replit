@@ -6,7 +6,7 @@ channel = "stable-24_05"
 
 [deployment]
 build = ["sh", "-c", "npm run build"]
-run = ["sh", "-c", "npm run preview"]
+run = ["sh", "-c", "npm run preview -- --port 5173"]
 deploymentTarget = "cloudrun"
 
 [workflows]
