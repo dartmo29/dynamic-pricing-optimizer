@@ -5,19 +5,20 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { TrendingDown, TrendingUp, Minimize2 } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/card';
+import { Button } from '../ui/button';
+import { TrendingDown, TrendingUp, Minimize2, ArrowRight } from 'lucide-react';
 
 /**
  * Market Position Selector component
  * 
  * @param {Object} props - Component props
- * @param {string} props.position - Current market position
+ * @param {string} props.marketPosition - Current market position
  * @param {Function} props.onPositionChange - Callback when position changes
+ * @param {Function} props.onContinue - Callback when continue button is clicked
  * @returns {JSX.Element} Market position selector component
  */
-const MarketPositionSelector = ({ position, onPositionChange }) => {
+const MarketPositionSelector = ({ marketPosition, onPositionChange, onContinue }) => {
   // Define position options
   const positionOptions = [
     {
@@ -46,6 +47,13 @@ const MarketPositionSelector = ({ position, onPositionChange }) => {
     }
   ];
 
+  // Handle continue button click
+  const handleContinue = () => {
+    if (typeof onContinue === 'function') {
+      onContinue();
+    }
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -63,7 +71,7 @@ const MarketPositionSelector = ({ position, onPositionChange }) => {
               <div
                 key={option.id}
                 className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                  position === option.id ? option.activeClass : option.inactiveClass
+                  marketPosition === option.id ? option.activeClass : option.inactiveClass
                 }`}
                 onClick={() => onPositionChange(option.id)}
               >
@@ -77,19 +85,19 @@ const MarketPositionSelector = ({ position, onPositionChange }) => {
           </div>
           
           <div className="pt-4 text-sm text-gray-500">
-            {position === 'budget' && (
+            {marketPosition === 'budget' && (
               <p>
                 Budget positioning focuses on competitive pricing to attract price-sensitive customers.
                 This strategy typically requires higher volume or lower costs to remain profitable.
               </p>
             )}
-            {position === 'mid-market' && (
+            {marketPosition === 'mid-market' && (
               <p>
                 Mid-market positioning balances price and value, appealing to the broadest customer base.
                 This strategy provides flexibility and is the most common approach.
               </p>
             )}
-            {position === 'premium' && (
+            {marketPosition === 'premium' && (
               <p>
                 Premium positioning emphasizes your superior value to justify higher prices.
                 This strategy works best when you have clear differentiators from competitors.
@@ -98,13 +106,22 @@ const MarketPositionSelector = ({ position, onPositionChange }) => {
           </div>
         </div>
       </CardContent>
+      <CardFooter className="flex justify-end pt-4">
+        <Button 
+          onClick={handleContinue}
+          className="flex items-center gap-1"
+        >
+          Continue to Competitors <ArrowRight className="h-4 w-4" />
+        </Button>
+      </CardFooter>
     </Card>
   );
 };
 
 MarketPositionSelector.propTypes = {
-  position: PropTypes.oneOf(['budget', 'mid-market', 'premium']).isRequired,
-  onPositionChange: PropTypes.func.isRequired
+  marketPosition: PropTypes.oneOf(['budget', 'mid-market', 'premium']).isRequired,
+  onPositionChange: PropTypes.func.isRequired,
+  onContinue: PropTypes.func
 };
 
 export default MarketPositionSelector;
