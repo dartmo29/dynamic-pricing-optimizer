@@ -20,3 +20,4 @@ echo "Building the project..."
 npm run build
 
 echo "Fix complete! Try running the app now with 'npm run dev'"
+echo "Note: The application should be running on port 5173"
