@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MarketPositionSelector from '../components/pricing-strategy/MarketPositionSelector';
 import PricingStrategyDashboard from '../components/pricing-strategy/PricingStrategyDashboard';
 import ImplementationGuidance from '../components/pricing-strategy/ImplementationGuidance';
 
 const PricingOptimizerPage = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [marketPosition, setMarketPosition] = useState('mid-market');
   const [selectedStrategy, setSelectedStrategy] = useState('cost-plus');
   const [error, setError] = useState(null);
@@ -14,6 +14,18 @@ const PricingOptimizerPage = () => {
     { name: 'Competitor B', price: 120 }
   ]);
 
+  useEffect(() => {
+    try {
+      // Simulate initialization
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+    } catch (err) {
+      setError(err.message);
+      setIsLoading(false);
+    }
+  }, []);
+
   const handlePositionChange = (position) => {
     setMarketPosition(position);
   };
@@ -21,10 +33,6 @@ const PricingOptimizerPage = () => {
   const handleStrategySelect = (strategy) => {
     setSelectedStrategy(strategy);
   };
-
-  useEffect(() => {
-    setIsLoading(false);
-  }, []);
 
   if (error) {
     return <div className="text-red-500 p-4">{error}</div>;
