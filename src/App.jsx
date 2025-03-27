@@ -24,19 +24,19 @@ const App = () => {
   // Simple routing state
   // In a real app, we'd use React Router or similar
   const [currentPage, setCurrentPage] = useState('pricing');
-  
+
   // Setup wizard state
   const [showSetupWizard, setShowSetupWizard] = useState(false);
-  
+
   // Error state in case something fails
   const [error, setError] = useState(null);
-  
+
   // Check if this is the first time the user is using the app
   useEffect(() => {
     try {
       const settings = loadFromStorage(STORAGE_KEYS.SETTINGS);
       const hasCompletedSetup = settings?.hasCompletedSetup;
-      
+
       if (!hasCompletedSetup) {
         setShowSetupWizard(true);
       }
@@ -45,7 +45,7 @@ const App = () => {
       setError('Failed to load settings. Please refresh the page or check browser storage permissions.');
     }
   }, []);
-  
+
   // Handle setup wizard completion
   const handleSetupComplete = (setupData) => {
     try {
@@ -53,22 +53,22 @@ const App = () => {
       if (setupData.costStructure) {
         saveToStorage(STORAGE_KEYS.COST_ANALYSIS, setupData.costStructure);
       }
-      
+
       if (setupData.businessProfile) {
         saveToStorage(STORAGE_KEYS.BUSINESS_PROFILE, setupData.businessProfile);
       }
-      
+
       if (setupData.competitors) {
         saveToStorage(STORAGE_KEYS.COMPETITORS, setupData.competitors);
       }
-      
+
       if (setupData.valueFactors) {
         saveToStorage(STORAGE_KEYS.VALUE_FACTORS, setupData.valueFactors);
       }
-      
+
       // Mark setup as completed
       saveToStorage(STORAGE_KEYS.SETTINGS, { hasCompletedSetup: true });
-      
+
       // Close setup wizard
       setShowSetupWizard(false);
     } catch (err) {
@@ -76,20 +76,20 @@ const App = () => {
       setError('Failed to save setup data. Please try again or check browser storage permissions.');
     }
   };
-  
+
   // Handle navigation between pages
   const handleNavigateToScenarios = () => {
     setCurrentPage('scenarios');
   };
-  
+
   const handleNavigateToPricing = () => {
     setCurrentPage('pricing');
   };
-  
+
   const handleNavigateToValueAssessment = () => {
     setCurrentPage('value-assessment');
   };
-  
+
   // Render the current page based on state
   const renderPage = () => {
     switch (currentPage) {
@@ -102,7 +102,7 @@ const App = () => {
         return <PricingOptimizerPage onNavigateToScenarios={handleNavigateToScenarios} />;
     }
   };
-  
+
   // If there's an error, show an error message
   if (error) {
     return (
@@ -119,9 +119,9 @@ const App = () => {
       </div>
     );
   }
-  
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground">
       <header className="bg-white shadow">
         <div className="container mx-auto p-4">
           <div className="flex justify-between items-center">
@@ -139,7 +139,7 @@ const App = () => {
                   >
                     Value Assessment <ChevronRight className="h-4 w-4" />
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     className="flex items-center gap-1"
@@ -149,7 +149,7 @@ const App = () => {
                   </Button>
                 </>
               )}
-              
+
               {currentPage === 'value-assessment' && (
                 <>
                   <Button
@@ -159,7 +159,7 @@ const App = () => {
                   >
                     Pricing Optimizer <ChevronRight className="h-4 w-4" />
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     className="flex items-center gap-1"
@@ -169,7 +169,7 @@ const App = () => {
                   </Button>
                 </>
               )}
-              
+
               {currentPage === 'scenarios' && (
                 <Button
                   variant="outline"
@@ -179,7 +179,7 @@ const App = () => {
                   Pricing Optimizer <ChevronRight className="h-4 w-4" />
                 </Button>
               )}
-              
+
               <Button
                 variant="ghost"
                 size="icon"
@@ -188,7 +188,7 @@ const App = () => {
               >
                 <PlusCircle className="h-5 w-5" />
               </Button>
-              
+
               <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
                 MVP Version
               </span>
@@ -196,11 +196,11 @@ const App = () => {
           </div>
         </div>
       </header>
-      
+
       <main className="container mx-auto py-6">
         {renderPage()}
       </main>
-      
+
       <footer className="bg-white border-t mt-12">
         <div className="container mx-auto p-4">
           <div className="flex justify-between items-center">
@@ -215,7 +215,7 @@ const App = () => {
           </div>
         </div>
       </footer>
-      
+
       {/* Setup Wizard */}
       {showSetupWizard && (
         <SetupWizard
