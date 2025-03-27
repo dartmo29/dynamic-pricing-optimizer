@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dynamic Pricing Optimizer</title>
     <meta name="description" content="A SaaS platform to help small businesses determine optimal pricing for their products or services" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <!-- Preload critical styles -->
-    <link rel="stylesheet" href="/src/index.css" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <!-- Styles will be injected by Vite during build -->
   </head>
   <body>
     <div id="root">
@@ -19,7 +18,8 @@
         </div>
       </div>
     </div>
-    <script type="module" src="/src/index.jsx"></script>
+    <!-- Main entry point - will be processed by Vite -->
+    <script type="module" src="./src/index.jsx"></script>
     <style>
       @keyframes spin {
         to { transform: rotate(360deg); }
