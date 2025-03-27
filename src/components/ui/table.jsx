@@ -31,4 +31,10 @@ const TableCell = React.forwardRef(({ className, ...props }, ref) => (
   <td ref={ref} className={`p-4 align-middle ${className}`} {...props} />
 ));
 
+TableHeader.displayName = 'TableHeader';
+TableHead.displayName = 'TableHead';
+TableBody.displayName = 'TableBody';
+TableRow.displayName = 'TableRow';
+TableCell.displayName = 'TableCell';
+
 export { Table, TableHeader, TableHead, TableBody, TableRow, TableCell };
