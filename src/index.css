@@ -3,25 +3,35 @@
 @tailwind utilities;
 
 :root {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 217.2 91.2% 59.8%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary: 217.2 32.6% 17.5%;
+  /* Modern business color palette */
+  --background: 220 25% 97%;
+  --foreground: 222 47% 11%;
+  
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+  
+  --secondary: 217 33% 18%;
   --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
+  
+  --muted: 214 32% 91%;
+  --muted-foreground: 215 16% 47%;
+  
+  --accent: 198 93% 60%;
+  --accent-foreground: 222 47% 11%;
+  
+  --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 48%;
+  
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 221 83% 53%;
+  
   --radius: 0.5rem;
 
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -37,6 +47,37 @@
   color: hsl(var(--foreground));
 }
 
+/* Dark mode override */
+.dark {
+  --background: 224 71% 4%;
+  --foreground: 213 31% 91%;
+  
+  --card: 224 71% 4%;
+  --card-foreground: 213 31% 91%;
+  
+  --popover: 224 71% 4%;
+  --popover-foreground: 215 20% 65%;
+  
+  --primary: 210 100% 66%;
+  --primary-foreground: 222 47% 11%;
+  
+  --secondary: 217 33% 18%;
+  --secondary-foreground: 210 40% 98%;
+  
+  --muted: 223 47% 11%;
+  --muted-foreground: 215 20% 65%;
+  
+  --accent: 217 33% 18%;
+  --accent-foreground: 210 40% 98%;
+  
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 210 40% 98%;
+  
+  --border: 217 33% 18%;
+  --input: 217 33% 18%;
+  --ring: 224 76% 48%;
+}
+
 html, body {
   min-height: 100vh;
   background-color: hsl(var(--background));
@@ -50,16 +91,43 @@ html, body {
   color: hsl(var(--card-foreground));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Card hover effect */
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .button-primary {
   background-color: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.button-primary:hover {
+  filter: brightness(110%);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .button-secondary {
   background-color: hsl(var(--secondary));
   color: hsl(var(--secondary-foreground));
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.button-secondary:hover {
+  filter: brightness(110%);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 body {
@@ -73,6 +141,83 @@ body {
   box-sizing: border-box;
 }
 
+/* Form Styles */
+input, select, textarea {
+  background-color: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsla(var(--primary), 0.25);
+}
+
+/* Pricing Optimizer Specific Styles */
+.wizard-step {
+  position: relative;
+  background: linear-gradient(to right, hsl(var(--background)), hsl(var(--muted)));
+  border-radius: var(--radius);
+  padding: 1rem;
+  border-left: 4px solid hsl(var(--primary));
+}
+
+.wizard-step.active {
+  border-left: 4px solid hsl(var(--accent));
+  background: linear-gradient(to right, hsl(var(--card)), hsl(var(--background)));
+}
+
+.step-icon {
+  background-color: hsl(var(--background));
+  border: 2px solid hsl(var(--primary));
+  color: hsl(var(--primary));
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.step-icon.active {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.step-icon.completed {
+  background-color: hsl(var(--accent));
+  border-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+/* Header & Navigation */
+header {
+  background-color: hsl(var(--card));
+  border-bottom: 1px solid hsl(var(--border));
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+nav a, nav button {
+  color: hsl(var(--foreground));
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+nav a:hover, nav button:hover {
+  color: hsl(var(--primary));
+}
+
+nav a.active, nav button.active {
+  color: hsl(var(--primary));
+  border-bottom: 2px solid hsl(var(--primary));
+}
+
 /* Debugging styles */
 .debug-border {
   border: 1px solid red;
@@ -80,4 +225,70 @@ body {
 
 .debug-bg {
   background-color: rgba(255, 0, 0, 0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Interactive Elements */
+.interactive-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.interactive-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    hsla(var(--primary), 0.1),
+    transparent 50%,
+    hsla(var(--accent), 0.1)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.interactive-card:hover::before {
+  opacity: 1;
+}
+
+.tooltip {
+  position: relative;
+}
+
+.tooltip-text {
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  padding: 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  white-space: nowrap;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
 }
