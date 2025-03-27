@@ -7,7 +7,10 @@ import ImplementationGuidance from '../components/pricing-strategy/Implementatio
 const PricingOptimizerPage = () => {
   const [marketPosition, setMarketPosition] = useState('mid-market');
   const [selectedStrategy, setSelectedStrategy] = useState('cost-plus');
-  const [competitors] = useState([]);
+  const [competitors] = useState([
+    { name: 'Competitor A', price: 100 },
+    { name: 'Competitor B', price: 120 }
+  ]);
 
   const handlePositionChange = (position) => {
     setMarketPosition(position);
@@ -18,7 +21,9 @@ const PricingOptimizerPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-4 space-y-6">
+      <h1 className="text-2xl font-bold">Dynamic Pricing Optimizer</h1>
+      
       <MarketPositionSelector
         marketPosition={marketPosition}
         onPositionChange={handlePositionChange}
