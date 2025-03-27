@@ -61,12 +61,14 @@ npm run dev
 - **Strategic Recommendations**: Get data-driven pricing strategy suggestions
 - **Implementation Guidance**: Step-by-step guidance for rolling out new pricing
 - **Scenario Comparison**: Create and compare different pricing scenarios
+- **Data Import/Export**: Share and reuse pricing models with JSON import/export
 
 ## 🏗️ Project Structure
 
 ```
 dynamic-pricing-optimizer/
-├── public/
+├── docs/                 # Documentation files
+├── public/               # Public assets
 ├── src/
 │   ├── components/
 │   │   ├── cost-analysis/     # Cost structure components
@@ -96,6 +98,7 @@ The Cost Analysis module helps businesses understand their cost structure, calcu
 - Indirect cost allocation (overhead, marketing, administration)
 - Time-based cost tracking (for service businesses)
 - Margin calculation and break-even analysis
+- Data import/export capabilities
 
 ### Customer Segments
 The Customer Segments module helps businesses analyze and optimize pricing for different customer groups:
@@ -150,6 +153,13 @@ The application includes a Component Test utility for testing UI components in i
 4. Select a component to test from the left sidebar
 5. Adjust properties and observe rendering
 
+## 📝 Documentation
+
+Detailed component documentation is available in the `docs` directory:
+
+- [CostStructureForm](docs/CostStructureForm.md) - Cost structure input form
+- [CostDataImport](docs/CostDataImport.md) - Cost data import functionality
+
 ## ⚠️ Common Issues and Solutions
 
 ### App Not Rendering
@@ -194,10 +204,14 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📅 Recent Updates
 
-- Added full scenario comparison and management system
-- Implemented customer segmentation with price elasticity analysis
+- Enhanced CostStructureForm with improved UI and additional features
+- Added CostDataImport component for importing cost data
+- Fixed paths and dependencies for proper component integration
+- Added comprehensive documentation for components
+- Added UI components: Tooltip, Dialog, Alert
+- Added customer segmentation with price elasticity analysis
 - Added segment-specific pricing recommendations
 - Integrated segment-based implementation guidance
-- Added export/import functionality for scenarios
+- Added export/import functionality for cost data
 - Enhanced user experience with improved workflow navigation
 - Added ability to save and compare different pricing strategies
