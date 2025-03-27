@@ -5,8 +5,8 @@ run = "npm run dev"
 channel = "stable-24_05"
 
 [deployment]
+build = ["sh", "-c", "NODE_ENV=production npm run build"]
 run = ["sh", "-c", "npm run preview -- --host 0.0.0.0 --port 5000"]
-build = ["sh", "-c", "npm run build"]
 deploymentTarget = "cloudrun"
 
 [workflows]
@@ -28,7 +28,16 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run build"
+args = "NODE_ENV=production npm run build"
+
+[[workflows.workflow]]
+name = "Deploy"
+author = 39250447
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "NODE_ENV=production npm run build && npm run preview -- --host 0.0.0.0 --port 5000"
 
 [[ports]]
 localPort = 5000
