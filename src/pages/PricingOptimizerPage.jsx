@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Button } from '../components/ui/button';
 import { FileText, DollarSign, TrendingUp, BarChart, Users, BarChart2 } from 'lucide-react';
@@ -28,7 +29,7 @@ import ImplementationGuidance from '../components/pricing-strategy/Implementatio
 import ScenarioManager from '../components/pricing-strategy/ScenarioManager';
 
 // PDF Export
-import { exportToPdf as exportPricing } from '../utils/pdfExport';
+import { exportToPdf } from '../utils/pdfExport';
 
 /**
  * PDF Export Button component
@@ -36,7 +37,7 @@ import { exportToPdf as exportPricing } from '../utils/pdfExport';
 const PdfExportButton = ({ exportType, data, label }) => {
   const handleExport = () => {
     if (exportType === 'pricing' || exportType === 'dashboard') {
-      exportPricing(data, exportType);
+      exportToPdf(data, exportType);
     }
   };
   
@@ -46,6 +47,12 @@ const PdfExportButton = ({ exportType, data, label }) => {
       {label || 'Export to PDF'}
     </Button>
   );
+};
+
+PdfExportButton.propTypes = {
+  exportType: PropTypes.string.isRequired,
+  data: PropTypes.object.isRequired,
+  label: PropTypes.string
 };
 
 /**
@@ -74,7 +81,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
     if (costAnalysis.costBreakdown.total > 0 && activeTab === 'cost-analysis') {
       // Delay switching to customer segments tab to allow animation to complete
       const timeout = setTimeout(() => {
-        setActiveTab('customer-segments');
+        setActiveTab('market-position');
       }, 500);
       
       return () => clearTimeout(timeout);
@@ -104,10 +111,38 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
   };
   
   /**
+   * Handle continuing to market position
+   */
+  const handleContinueToMarketPosition = () => {
+    setActiveTab('market-position');
+  };
+  
+  /**
+   * Handle continuing to competitors
+   */
+  const handleContinueToCompetitors = () => {
+    setActiveTab('competitors');
+  };
+  
+  /**
+   * Handle continuing to value factors
+   */
+  const handleContinueToValueFactors = () => {
+    setActiveTab('value-factors');
+  };
+  
+  /**
    * Handle continuing to customer segments
    */
   const handleContinueToCustomerSegments = () => {
     setActiveTab('customer-segments');
+  };
+  
+  /**
+   * Handle continuing to recommendations
+   */
+  const handleContinueToRecommendations = () => {
+    setActiveTab('recommendations');
   };
   
   /**
@@ -201,11 +236,18 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
    * Save current state as a scenario
    */
   const handleSaveAsScenario = () => {
-    const defaultName = `${pricingStrategy.selectedStrategy} Strategy (${new Date().toLocaleDateString()})`;
+    const defaultName = `${pricingStrategy.selectedStrategy || 'Default'} Strategy (${new Date().toLocaleDateString()})`;
     
     scenarioManager.createScenario(defaultName, {
-      costAnalysis,
-      pricingStrategy
+      costAnalysis: costAnalysis.getCostStructure(),
+      pricingStrategy: {
+        marketPosition: pricingStrategy.marketPosition,
+        competitors: pricingStrategy.competitors,
+        valueFactors: pricingStrategy.valueFactors,
+        customerSegments,
+        selectedStrategy: pricingStrategy.selectedStrategy,
+        priceRecommendations: pricingStrategy.priceRecommendations
+      }
     });
     
     // Optionally navigate to the scenarios page
@@ -218,9 +260,129 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
     <div className="container mx-auto p-4 space-y-6">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Dynamic Pricing Optimizer</h1>
-        <Button 
-          variant="outline" 
-          className="flex items-center gap-2"
-          onClick={handleSaveAsScenario}
-        >
-          <BarChart2 className="h-4 w-4
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={handleSaveAsScenario}
+          >
+            <BarChart2 className="h-4 w-4" /> Save as Scenario
+          </Button>
+          
+          <PdfExportButton 
+            exportType="pricing" 
+            data={getExportData()}
+            label="Export Report"
+          />
+        </div>
+      </div>
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid grid-cols-6 mb-8">
+          <TabsTrigger value="cost-analysis" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" /> Cost Analysis
+          </TabsTrigger>
+          <TabsTrigger value="market-position" className="flex items-center gap-2">
+            <BarChart className="h-4 w-4" /> Market Position
+          </TabsTrigger>
+          <TabsTrigger value="competitors" className="flex items-center gap-2">
+            <Users className="h-4 w-4" /> Competitors
+          </TabsTrigger>
+          <TabsTrigger value="value-factors" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" /> Value Factors
+          </TabsTrigger>
+          <TabsTrigger value="customer-segments" className="flex items-center gap-2">
+            <Users className="h-4 w-4" /> Customer Segments
+          </TabsTrigger>
+          <TabsTrigger value="recommendations" className="flex items-center gap-2">
+            <BarChart2 className="h-4 w-4" /> Recommendations
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="cost-analysis">
+          <CostStructure 
+            costAnalysis={costAnalysis}
+            onSave={handleCostStructureSave}
+            onContinue={handleContinueToMarketPosition}
+          />
+        </TabsContent>
+        
+        <TabsContent value="market-position">
+          <MarketPositionSelector 
+            marketPosition={pricingStrategy.marketPosition}
+            onPositionChange={pricingStrategy.setMarketPosition}
+            onContinue={handleContinueToCompetitors}
+          />
+        </TabsContent>
+        
+        <TabsContent value="competitors">
+          <CompetitorForm 
+            competitors={pricingStrategy.competitors || []}
+            onAddCompetitor={pricingStrategy.addCompetitor}
+            onUpdateCompetitor={pricingStrategy.updateCompetitor}
+            onRemoveCompetitor={pricingStrategy.removeCompetitor}
+            onContinue={handleContinueToValueFactors}
+          />
+        </TabsContent>
+        
+        <TabsContent value="value-factors">
+          <ValueFactorForm 
+            valueFactors={pricingStrategy.valueFactors || []}
+            onAddValueFactor={pricingStrategy.addValueFactor}
+            onUpdateValueFactor={pricingStrategy.updateValueFactor}
+            onRemoveValueFactor={pricingStrategy.removeValueFactor}
+            onContinue={handleContinueToCustomerSegments}
+          />
+        </TabsContent>
+        
+        <TabsContent value="customer-segments">
+          <CustomerSegmentForm 
+            segments={customerSegments}
+            onAddSegment={handleAddSegment}
+            onUpdateSegment={handleUpdateSegment}
+            onRemoveSegment={handleRemoveSegment}
+            onContinue={handleContinueToRecommendations}
+          />
+        </TabsContent>
+        
+        <TabsContent value="recommendations">
+          <div className="space-y-6">
+            <PricingStrategyDashboard 
+              costBreakdown={costAnalysis.costBreakdown}
+              minimumPrice={costAnalysis.costBreakdown.minimumPrice}
+              priceRecommendations={pricingStrategy.priceRecommendations}
+              selectedStrategy={pricingStrategy.selectedStrategy}
+              onStrategyChange={pricingStrategy.setSelectedStrategy}
+              competitors={pricingStrategy.competitors}
+            />
+            
+            <ImplementationGuidance 
+              selectedStrategy={pricingStrategy.selectedStrategy}
+              priceRecommendation={
+                pricingStrategy.priceRecommendations && 
+                pricingStrategy.selectedStrategy ? 
+                pricingStrategy.priceRecommendations[pricingStrategy.selectedStrategy] : null
+              }
+              marketPosition={pricingStrategy.marketPosition}
+              segments={customerSegments}
+            />
+            
+            <div className="flex justify-end mt-4">
+              <PdfExportButton 
+                exportType="dashboard" 
+                data={getExportData()}
+                label="Export Dashboard"
+              />
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+PricingOptimizerPage.propTypes = {
+  onNavigateToScenarios: PropTypes.func
+};
+
+export default PricingOptimizerPage;
