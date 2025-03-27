@@ -5,8 +5,10 @@ import PricingStrategyDashboard from '../components/pricing-strategy/PricingStra
 import ImplementationGuidance from '../components/pricing-strategy/ImplementationGuidance';
 
 const PricingOptimizerPage = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [marketPosition, setMarketPosition] = useState('mid-market');
   const [selectedStrategy, setSelectedStrategy] = useState('cost-plus');
+  const [error, setError] = useState(null);
   const [competitors] = useState([
     { name: 'Competitor A', price: 100 },
     { name: 'Competitor B', price: 120 }
@@ -19,6 +21,18 @@ const PricingOptimizerPage = () => {
   const handleStrategySelect = (strategy) => {
     setSelectedStrategy(strategy);
   };
+
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
+
+  if (error) {
+    return <div className="text-red-500 p-4">{error}</div>;
+  }
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
 
   return (
     <div className="container mx-auto p-4">
