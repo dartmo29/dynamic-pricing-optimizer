@@ -3,16 +3,19 @@
  * Form component for inputting cost structure data
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Plus, X, Save, BriefcaseBusiness } from 'lucide-react';
+import { Plus, X, Save, BriefcaseBusiness, Download, Upload, RefreshCw, AlertCircle, HelpCircle } from 'lucide-react';
 import { isPositiveNumber, isNonNegativeNumber, isValidPercentage } from '../../utils/validators';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 /**
  * Cost Structure Form component
@@ -46,8 +49,16 @@ const CostStructureForm = ({ onSave, onLoadTemplate, costAnalysis }) => {
     handleExpectedVolumeChange,
     loadIndustryTemplate,
     validateAllInputs,
-    getCostStructure
+    getCostStructure,
+    importCostData
   } = costAnalysis;
+
+  // Local state
+  const [showTips, setShowTips] = useState(true);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [importError, setImportError] = useState('');
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
 
   /**
    * Handle form submission
@@ -104,13 +115,189 @@ const CostStructureForm = ({ onSave, onLoadTemplate, costAnalysis }) => {
     if (onLoadTemplate) onLoadTemplate(template);
   };
 
+  /**
+   * Export cost structure as JSON
+   */
+  const handleExport = () => {
+    const costData = getCostStructure();
+    const dataStr = JSON.stringify(costData, null, 2);
+    const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
+    
+    const exportFileDefaultName = `cost-structure-export-${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
+  /**
+   * Handle import
+   */
+  const handleImport = () => {
+    try {
+      setImportError('');
+      const importedData = JSON.parse(importText);
+      
+      // Validate basic structure
+      if (!importedData.directCosts || !importedData.indirectCosts || !importedData.timeCosts) {
+        setImportError('Invalid cost structure format. Missing required cost categories.');
+        return;
+      }
+      
+      const success = importCostData(importedData);
+      if (success) {
+        setImportDialogOpen(false);
+        setImportText('');
+      } else {
+        setImportError('Failed to import data. Please check the format.');
+      }
+    } catch (error) {
+      setImportError('Invalid JSON format. Please check your data.');
+    }
+  };
+
+  /**
+   * Reset cost structure to empty state
+   */
+  const handleReset = () => {
+    // Create a new empty cost structure
+    const emptyData = {
+      businessType: 'service',
+      directCosts: [{ name: '', amount: '', unit: 'unit' }],
+      indirectCosts: [{ name: '', amount: '', period: 'month' }],
+      timeCosts: [{ name: '', rate: '', hours: '' }],
+      targetMargin: 0.30,
+      expectedVolume: 100
+    };
+    
+    importCostData(emptyData);
+    setConfirmResetOpen(false);
+  };
+
+  /**
+   * Check if any costs have been entered
+   */
+  const hasCostData = () => {
+    return directCosts.some(cost => cost.name || cost.amount) || 
+           indirectCosts.some(cost => cost.name || cost.amount) || 
+           timeCosts.some(cost => cost.name || cost.rate || cost.hours);
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Cost Structure</CardTitle>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <BriefcaseBusiness className="h-5 w-5" />
+              Cost Structure
+            </CardTitle>
+            <CardDescription>
+              Define your business costs to calculate optimal pricing
+            </CardDescription>
+          </div>
+          
+          <div className="flex gap-2">
+            <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                  <Upload className="h-4 w-4" />
+                  Import
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Import Cost Data</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-500">
+                    Paste your JSON cost structure data below:
+                  </p>
+                  <textarea 
+                    className="w-full h-48 p-2 border rounded-md font-mono text-sm"
+                    value={importText}
+                    onChange={(e) => setImportText(e.target.value)}
+                    placeholder='{"businessType":"service","directCosts":[{"name":"Materials","amount":10,"unit":"unit"}],...}'
+                  />
+                  {importError && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Error</AlertTitle>
+                      <AlertDescription>{importError}</AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setImportDialogOpen(false)}>Cancel</Button>
+                  <Button onClick={handleImport}>Import</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-1" 
+              onClick={handleExport}
+              disabled={!hasCostData()}
+            >
+              <Download className="h-4 w-4" />
+              Export
+            </Button>
+
+            <Dialog open={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Reset
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Reset Cost Structure</DialogTitle>
+                </DialogHeader>
+                <p>
+                  Are you sure you want to reset the cost structure? This will clear all your current cost data.
+                </p>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setConfirmResetOpen(false)}>Cancel</Button>
+                  <Button variant="destructive" onClick={handleReset}>Reset</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
+          {showTips && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Tips for accurate pricing</AlertTitle>
+              <AlertDescription>
+                <ul className="list-disc pl-5 mt-2 text-sm">
+                  <li>Include all direct costs associated with each unit of your product/service</li>
+                  <li>Don't forget overhead costs like rent, utilities, and software</li>
+                  <li>For service businesses, track time costs separately</li>
+                  <li>Set a realistic target margin based on your industry</li>
+                </ul>
+                <Button 
+                  variant="link" 
+                  size="sm" 
+                  className="mt-2 p-0 h-auto" 
+                  onClick={() => setShowTips(false)}
+                >
+                  Dismiss
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+          
           {/* Business Type & Templates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -153,8 +340,26 @@ const CostStructureForm = ({ onSave, onLoadTemplate, costAnalysis }) => {
             
             {/* Direct Costs Tab */}
             <TabsContent value="direct" className="space-y-4">
-              <div className="text-sm text-gray-500 mb-2">
-                Enter costs directly tied to each unit of your product or service (materials, components, etc.)
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-500">
+                  Enter costs directly tied to each unit of your product or service (materials, components, etc.)
+                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <HelpCircle className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">
+                        Direct costs are costs that can be directly attributed to each unit you sell.
+                        For a product business, this includes materials, packaging, and per-unit labor.
+                        For a service business, this includes any supplies or resources used for each client.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
               
               {directCosts.map((cost, index) => (
@@ -207,8 +412,26 @@ const CostStructureForm = ({ onSave, onLoadTemplate, costAnalysis }) => {
             
             {/* Indirect Costs Tab */}
             <TabsContent value="indirect" className="space-y-4">
-              <div className="text-sm text-gray-500 mb-2">
-                Enter overhead costs that are not directly tied to individual units (rent, marketing, etc.)
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-500">
+                  Enter overhead costs that are not directly tied to individual units (rent, marketing, etc.)
+                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <HelpCircle className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">
+                        Indirect costs are overhead expenses that can't be directly attributed to individual units.
+                        These include rent, utilities, software subscriptions, marketing, and administrative expenses.
+                        These costs will be allocated across your expected monthly volume.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
               
               {indirectCosts.map((cost, index) => (
@@ -267,8 +490,26 @@ const CostStructureForm = ({ onSave, onLoadTemplate, costAnalysis }) => {
             
             {/* Time Costs Tab */}
             <TabsContent value="time" className="space-y-4">
-              <div className="text-sm text-gray-500 mb-2">
-                For service businesses: Enter time-based costs (consultant hours, labor, etc.)
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-500">
+                  For service businesses: Enter time-based costs (consultant hours, labor, etc.)
+                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <HelpCircle className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">
+                        Time costs track labor expenses based on hourly rates. 
+                        For consulting or service businesses, this includes time spent by team members on each client/project.
+                        Enter the hourly rate and typical hours spent per unit of service.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
               
               {timeCosts.map((cost, index) => (
@@ -325,7 +566,25 @@ const CostStructureForm = ({ onSave, onLoadTemplate, costAnalysis }) => {
           {/* Target Margin and Volume */}
           <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
             <div>
-              <Label htmlFor="target-margin">Target Profit Margin (%)</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="target-margin">Target Profit Margin (%)</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-6 w-6">
+                        <HelpCircle className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">
+                        Your target profit margin is the percentage of revenue you aim to keep as profit.
+                        Industry averages vary: retail (15-45%), services (20-60%), software (60-80%).
+                        Higher margins provide more flexibility but may limit market competitiveness.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Input
                 id="target-margin"
                 type="number"
@@ -340,7 +599,25 @@ const CostStructureForm = ({ onSave, onLoadTemplate, costAnalysis }) => {
               )}
             </div>
             <div>
-              <Label htmlFor="expected-volume">Expected Monthly Volume</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="expected-volume">Expected Monthly Volume</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-6 w-6">
+                        <HelpCircle className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">
+                        Your expected monthly volume is the number of units, clients, or projects you
+                        expect to handle each month. This is used to allocate indirect costs across 
+                        your business volume for per-unit pricing calculations.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Input
                 id="expected-volume"
                 type="number"
@@ -354,17 +631,26 @@ const CostStructureForm = ({ onSave, onLoadTemplate, costAnalysis }) => {
               )}
             </div>
           </div>
-          
-          <Button 
-            type="button" 
-            onClick={handleSubmit} 
-            className="w-full"
-            disabled={!isValidPercentage(targetMargin * 100) || !isPositiveNumber(expectedVolume)}
-          >
-            <Save className="h-4 w-4 mr-2" /> Save Cost Structure
-          </Button>
         </div>
       </CardContent>
+      <CardFooter className="flex justify-between items-center">
+        <div>
+          {costAnalysis.costBreakdown && costAnalysis.costBreakdown.total > 0 && (
+            <div className="text-sm">
+              <span className="font-medium">Total Cost Per Unit:</span>{' '}
+              <span className="font-bold">${costAnalysis.costBreakdown.total.toFixed(2)}</span>
+            </div>
+          )}
+        </div>
+        <Button 
+          type="button" 
+          onClick={handleSubmit} 
+          className="flex items-center gap-2"
+          disabled={!isValidPercentage(targetMargin * 100) || !isPositiveNumber(expectedVolume)}
+        >
+          <Save className="h-4 w-4" /> Save Cost Structure
+        </Button>
+      </CardFooter>
     </Card>
   );
 };
