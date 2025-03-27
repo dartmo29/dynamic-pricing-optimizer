@@ -1,43 +1,27 @@
-/**
- * badge.jsx
- * Badge component for status indicators and labels
- */
+import { cva } from "class-variance-authority";
+import { cn } from "../../lib/utils";
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
+const badgeVariants = cva(
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  {
+    variants: {
+      variant: {
+        default: "border-transparent bg-primary text-primary-foreground",
+        secondary: "border-transparent bg-secondary text-secondary-foreground",
+        destructive: "border-transparent bg-destructive text-destructive-foreground",
+        outline: "text-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+);
 
-/**
- * Badge variants
- * @type {Object}
- */
-const badgeVariants = {
-  default: "bg-gray-100 text-gray-800",
-  primary: "bg-blue-100 text-blue-800",
-  secondary: "bg-gray-100 text-gray-800",
-  success: "bg-green-100 text-green-800",
-  warning: "bg-yellow-100 text-yellow-800",
-  danger: "bg-red-100 text-red-800",
-  info: "bg-sky-100 text-sky-800",
-};
-
-/**
- * Badge component
- * @param {Object} props Component props
- * @returns {JSX.Element} Styled badge component
- */
-const Badge = React.forwardRef(({ className, variant = "default", ...props }, ref) => {
+function Badge({ className, variant, ...props }) {
   return (
-    <span
-      ref={ref}
-      className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-        badgeVariants[variant],
-        className
-      )}
-      {...props}
-    />
+    <div className={cn(badgeVariants({ variant }), className)} {...props} />
   );
-});
-Badge.displayName = "Badge";
+}
 
 export { Badge, badgeVariants };
