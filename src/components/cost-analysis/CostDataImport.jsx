@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Upload, FileUp, Code } from 'lucide-react';
+import { validateJsonImport } from '../../utils/validators';
 
 /**
  * Cost Data Import component
@@ -36,46 +37,15 @@ const CostDataImport = ({ onImport }) => {
     setIsProcessing(true);
     
     try {
-      const data = JSON.parse(jsonText);
+      // Validate JSON using our enhanced validator
+      const result = validateJsonImport(jsonText);
       
-      // Basic validation of structure
-      if (!data || typeof data !== 'object') {
-        throw new Error('Invalid JSON structure. Expected an object.');
+      if (!result.success) {
+        throw new Error(result.error);
       }
       
-      // Check required properties
-      if (
-        !Array.isArray(data.directCosts) || 
-        !Array.isArray(data.indirectCosts) || 
-        !Array.isArray(data.timeCosts)
-      ) {
-        throw new Error('Invalid cost structure format. Missing required cost arrays.');
-      }
-      
-      // Validate business type
-      if (data.businessType && !['service', 'product', 'subscription'].includes(data.businessType)) {
-        throw new Error('Invalid business type. Must be "service", "product", or "subscription".');
-      }
-      
-      // Validate target margin
-      if (data.targetMargin !== undefined && (
-        typeof data.targetMargin !== 'number' || 
-        data.targetMargin < 0 || 
-        data.targetMargin > 1
-      )) {
-        throw new Error('Invalid target margin. Must be a number between 0 and 1.');
-      }
-      
-      // Validate expected volume
-      if (data.expectedVolume !== undefined && (
-        typeof data.expectedVolume !== 'number' || 
-        data.expectedVolume <= 0
-      )) {
-        throw new Error('Invalid expected volume. Must be a positive number.');
-      }
-      
-      // Pass to parent component
-      const success = onImport(data);
+      // Pass validated data to parent component
+      const success = onImport(result.data);
       
       if (!success) {
         throw new Error('Failed to import data. The data may be valid but could not be processed.');
@@ -116,23 +86,16 @@ const CostDataImport = ({ onImport }) => {
     reader.onload = (e) => {
       try {
         const content = e.target.result;
-        const data = JSON.parse(content);
         
-        // Same validation as JSON text
-        if (!data || typeof data !== 'object') {
-          throw new Error('Invalid JSON structure. Expected an object.');
+        // Validate JSON using our enhanced validator
+        const result = validateJsonImport(content);
+        
+        if (!result.success) {
+          throw new Error(result.error);
         }
         
-        if (
-          !Array.isArray(data.directCosts) || 
-          !Array.isArray(data.indirectCosts) || 
-          !Array.isArray(data.timeCosts)
-        ) {
-          throw new Error('Invalid cost structure format. Missing required cost arrays.');
-        }
-        
-        // Pass to parent component
-        const success = onImport(data);
+        // Pass validated data to parent component
+        const success = onImport(result.data);
         
         if (!success) {
           throw new Error('Failed to import data. The data may be valid but could not be processed.');
