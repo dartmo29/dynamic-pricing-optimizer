@@ -1,52 +1,30 @@
-
 import React, { useState, useEffect } from 'react';
 import MarketPositionSelector from '../components/pricing-strategy/MarketPositionSelector';
-import PricingStrategyCard from '../components/pricing-strategy/PricingStrategyCard';
-import SetupWizard from '../components/setup/SetupWizard';
 
 const PricingOptimizerPage = () => {
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [marketPosition, setMarketPosition] = useState('mid-market');
-  const [selectedStrategy, setSelectedStrategy] = useState('cost-plus');
-  const [competitors] = useState([
-    { name: 'Competitor A', price: 100 },
-    { name: 'Competitor B', price: 120 }
-  ]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate initialization
-    setTimeout(() => setIsInitialized(true), 1000);
+    // Simulate any initial data loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
   }, []);
 
-  const handleStrategySelect = (strategy) => {
-    setSelectedStrategy(strategy);
-  };
-
-  if (!isInitialized) {
+  if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-[50vh]">
-        <div className="animate-pulse text-lg text-gray-600">
-          Initializing pricing optimizer...
-        </div>
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <SetupWizard />
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <MarketPositionSelector 
-          position={marketPosition}
-          onPositionChange={setMarketPosition}
-        />
-        
-        <PricingStrategyCard
-          strategy={selectedStrategy}
-          onStrategySelect={handleStrategySelect}
-          competitors={competitors}
-        />
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Pricing Optimizer</h1>
+      <div className="grid gap-6">
+        <MarketPositionSelector />
       </div>
     </div>
   );
