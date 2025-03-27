@@ -30,6 +30,7 @@ import ScenarioManager from '../components/pricing-strategy/ScenarioManager';
 
 // PDF Export
 import { exportToPdf } from '../utils/pdfExport';
+import { loadFromStorage, STORAGE_KEYS } from '../utils/storage';
 
 /**
  * PDF Export Button component
@@ -40,7 +41,7 @@ const PdfExportButton = ({ exportType, data, label }) => {
       exportToPdf(data, exportType);
     }
   };
-  
+
   return (
     <Button onClick={handleExport} className="flex items-center gap-2">
       <FileText className="h-4 w-4" />
@@ -83,7 +84,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
       const timeout = setTimeout(() => {
         setActiveTab('market-position');
       }, 500);
-      
+
       return () => clearTimeout(timeout);
     }
   }, [costAnalysis.costBreakdown.total, activeTab]);
@@ -165,7 +166,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
         !pricingStrategy.priceRecommendations[pricingStrategy.selectedStrategy]) {
       return 0;
     }
-    
+
     return pricingStrategy.priceRecommendations[pricingStrategy.selectedStrategy].price;
   };
 
@@ -180,13 +181,13 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
         segment.priceElasticity, 
         segment.description || ''
       );
-      
+
       // Update local state
       setCustomerSegments([...pricingStrategy.pricingModel.segments]);
-      
+
       // Trigger recalculation
       pricingStrategy.recalculateRecommendations();
-      
+
       return id;
     }
     return null;
@@ -198,15 +199,15 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
   const handleUpdateSegment = (id, updatedSegment) => {
     if (pricingStrategy.pricingModel) {
       const success = pricingStrategy.pricingModel.updateSegment(id, updatedSegment);
-      
+
       if (success) {
         // Update local state
         setCustomerSegments([...pricingStrategy.pricingModel.segments]);
-        
+
         // Trigger recalculation
         pricingStrategy.recalculateRecommendations();
       }
-      
+
       return success;
     }
     return false;
@@ -218,15 +219,15 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
   const handleRemoveSegment = (id) => {
     if (pricingStrategy.pricingModel) {
       const success = pricingStrategy.pricingModel.removeSegment(id);
-      
+
       if (success) {
         // Update local state
         setCustomerSegments([...pricingStrategy.pricingModel.segments]);
-        
+
         // Trigger recalculation
         pricingStrategy.recalculateRecommendations();
       }
-      
+
       return success;
     }
     return false;
@@ -237,7 +238,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
    */
   const handleSaveAsScenario = () => {
     const defaultName = `${pricingStrategy.selectedStrategy || 'Default'} Strategy (${new Date().toLocaleDateString()})`;
-    
+
     scenarioManager.createScenario(defaultName, {
       costAnalysis: costAnalysis.getCostStructure(),
       pricingStrategy: {
@@ -249,7 +250,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
         priceRecommendations: pricingStrategy.priceRecommendations
       }
     });
-    
+
     // Optionally navigate to the scenarios page
     if (typeof onNavigateToScenarios === 'function') {
       onNavigateToScenarios();
@@ -257,13 +258,32 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
   };
 
   const [selectedPosition, setSelectedPosition] = useState('');
-  const [selectedStrategy, setSelectedStrategy] = useState('');
+  const [selectedStrategy2, setSelectedStrategy2] = useState(''); // Added to avoid naming conflict
 
-  const handlePositionChange = (position) => {
+  const handlePositionChange2 = (position) => { // Added to avoid naming conflict
     setSelectedPosition(position);
   };
 
-  const handleStrategySelect = (strategy) => {
+  const handleStrategySelect2 = (strategy) => { // Added to avoid naming conflict
+    setSelectedStrategy2(strategy);
+  };
+
+
+  const [marketPosition, setMarketPosition] = useState('neutral');
+  const [selectedStrategy, setSelectedStrategy] = useState(null);
+  const [competitors, setCompetitors] = useState([]);
+
+  useEffect(() => {
+    // Load competitors data from storage
+    const storedCompetitors = loadFromStorage(STORAGE_KEYS.COMPETITORS) || [];
+    setCompetitors(storedCompetitors);
+  }, []);
+
+  const handlePositionChange3 = (position) => {
+    setMarketPosition(position);
+  };
+
+  const handleStrategySelect3 = (strategy) => {
     setSelectedStrategy(strategy);
   };
 
@@ -279,7 +299,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
           >
             <BarChart2 className="h-4 w-4" /> Save as Scenario
           </Button>
-          
+
           <PdfExportButton 
             exportType="pricing" 
             data={getExportData()}
@@ -287,7 +307,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
           />
         </div>
       </div>
-      
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid grid-cols-6 mb-8">
           <TabsTrigger value="cost-analysis" className="flex items-center gap-2">
@@ -309,7 +329,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
             <BarChart2 className="h-4 w-4" /> Recommendations
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="cost-analysis">
           <CostStructure 
             costAnalysis={costAnalysis}
@@ -317,7 +337,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
             onContinue={handleContinueToMarketPosition}
           />
         </TabsContent>
-        
+
         <TabsContent value="market-position">
           <MarketPositionSelector 
             marketPosition={pricingStrategy.marketPosition}
@@ -325,7 +345,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
             onContinue={handleContinueToCompetitors}
           />
         </TabsContent>
-        
+
         <TabsContent value="competitors">
           <CompetitorForm 
             competitors={pricingStrategy.competitors || []}
@@ -335,7 +355,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
             onContinue={handleContinueToValueFactors}
           />
         </TabsContent>
-        
+
         <TabsContent value="value-factors">
           <ValueFactorForm 
             valueFactors={pricingStrategy.valueFactors || []}
@@ -345,7 +365,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
             onContinue={handleContinueToCustomerSegments}
           />
         </TabsContent>
-        
+
         <TabsContent value="customer-segments">
           <CustomerSegmentForm 
             segments={customerSegments}
@@ -355,31 +375,24 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
             onContinue={handleContinueToRecommendations}
           />
         </TabsContent>
-        
+
         <TabsContent value="recommendations">
           <div className="space-y-6">
             <MarketPositionSelector 
-              onPositionChange={handlePositionChange}
-              currentPosition={selectedPosition}
+              onPositionChange={handlePositionChange3}
+              currentPosition={marketPosition}
             />
 
             <PricingStrategyDashboard 
-              onSelectStrategy={handleStrategySelect}
-              currentStrategy={selectedStrategy}
-              marketPosition={selectedPosition}
+              competitors={competitors}
+              selectedStrategy={selectedStrategy}
+              onSelectStrategy={handleStrategySelect3}
             />
 
             <ImplementationGuidance 
               strategyName={selectedStrategy}
-              marketPosition={selectedPosition}
+              competitors={competitors}
             />
-            <div className="flex justify-end mt-4">
-              <PdfExportButton 
-                exportType="dashboard" 
-                data={getExportData()}
-                label="Export Dashboard"
-              />
-            </div>
           </div>
         </TabsContent>
       </Tabs>
