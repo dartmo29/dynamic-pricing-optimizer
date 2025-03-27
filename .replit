@@ -7,3 +7,20 @@ channel = "stable-24_05"
 [deployment]
 run = ["sh", "-c", "npx serve dist --listen 5000"]
 build = ["sh", "-c", "npm run build"]
+deploymentTarget = "cloudrun"
+
+[workflows]
+runButton = "Dev Server"
+
+[[workflows.workflow]]
+name = "Dev Server"
+author = 39250447
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev -- --host 0.0.0.0 --port 5000"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
