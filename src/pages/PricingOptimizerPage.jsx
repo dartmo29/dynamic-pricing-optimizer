@@ -63,19 +63,19 @@ PdfExportButton.propTypes = {
 const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
   // State for active tab
   const [activeTab, setActiveTab] = useState('cost-analysis');
-  
+
   // Use cost analysis hook
   const costAnalysis = useCostAnalysis();
-  
+
   // Use pricing strategy hook with the cost model
   const pricingStrategy = usePricingStrategy(costAnalysis.costModel);
-  
+
   // State for customer segments
   const [customerSegments, setCustomerSegments] = useState([]);
-  
+
   // Use scenario manager hook
   const scenarioManager = useScenarioManager();
-  
+
   // Effect to switch to customer segments tab after cost structure saved
   useEffect(() => {
     if (costAnalysis.costBreakdown.total > 0 && activeTab === 'cost-analysis') {
@@ -87,7 +87,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
       return () => clearTimeout(timeout);
     }
   }, [costAnalysis.costBreakdown.total, activeTab]);
-  
+
   // Effect to initialize customer segments from pricing model
   useEffect(() => {
     if (pricingStrategy.pricingModel) {
@@ -100,7 +100,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
       }
     }
   }, [pricingStrategy.pricingModel, pricingStrategy.customerSegments]);
-  
+
   /**
    * Handle cost structure save
    * @param {Object} costData - Cost structure data
@@ -109,42 +109,42 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
     // This happens automatically through the hook, but we could add something here
     console.log('Cost structure saved:', costData);
   };
-  
+
   /**
    * Handle continuing to market position
    */
   const handleContinueToMarketPosition = () => {
     setActiveTab('market-position');
   };
-  
+
   /**
    * Handle continuing to competitors
    */
   const handleContinueToCompetitors = () => {
     setActiveTab('competitors');
   };
-  
+
   /**
    * Handle continuing to value factors
    */
   const handleContinueToValueFactors = () => {
     setActiveTab('value-factors');
   };
-  
+
   /**
    * Handle continuing to customer segments
    */
   const handleContinueToCustomerSegments = () => {
     setActiveTab('customer-segments');
   };
-  
+
   /**
    * Handle continuing to recommendations
    */
   const handleContinueToRecommendations = () => {
     setActiveTab('recommendations');
   };
-  
+
   /**
    * Prepare export data for PDF
    */
@@ -155,7 +155,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
       customerSegments
     };
   };
-  
+
   /**
    * Get recommended price
    */
@@ -231,7 +231,7 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
     }
     return false;
   };
-  
+
   /**
    * Save current state as a scenario
    */
@@ -255,7 +255,18 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
       onNavigateToScenarios();
     }
   };
-  
+
+  const [selectedPosition, setSelectedPosition] = useState('');
+  const [selectedStrategy, setSelectedStrategy] = useState('');
+
+  const handlePositionChange = (position) => {
+    setSelectedPosition(position);
+  };
+
+  const handleStrategySelect = (strategy) => {
+    setSelectedStrategy(strategy);
+  };
+
   return (
     <div className="container mx-auto p-4 space-y-6">
       <div className="flex justify-between items-center mb-4">
@@ -347,26 +358,21 @@ const PricingOptimizerPage = ({ onNavigateToScenarios }) => {
         
         <TabsContent value="recommendations">
           <div className="space-y-6">
+            <MarketPositionSelector 
+              onPositionChange={handlePositionChange}
+              currentPosition={selectedPosition}
+            />
+
             <PricingStrategyDashboard 
-              costBreakdown={costAnalysis.costBreakdown}
-              minimumPrice={costAnalysis.costBreakdown.minimumPrice}
-              priceRecommendations={pricingStrategy.priceRecommendations}
-              selectedStrategy={pricingStrategy.selectedStrategy}
-              onStrategyChange={pricingStrategy.setSelectedStrategy}
-              competitors={pricingStrategy.competitors}
+              onSelectStrategy={handleStrategySelect}
+              currentStrategy={selectedStrategy}
+              marketPosition={selectedPosition}
             />
-            
+
             <ImplementationGuidance 
-              selectedStrategy={pricingStrategy.selectedStrategy}
-              priceRecommendation={
-                pricingStrategy.priceRecommendations && 
-                pricingStrategy.selectedStrategy ? 
-                pricingStrategy.priceRecommendations[pricingStrategy.selectedStrategy] : null
-              }
-              marketPosition={pricingStrategy.marketPosition}
-              segments={customerSegments}
+              strategyName={selectedStrategy}
+              marketPosition={selectedPosition}
             />
-            
             <div className="flex justify-end mt-4">
               <PdfExportButton 
                 exportType="dashboard" 
