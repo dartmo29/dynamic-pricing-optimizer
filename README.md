@@ -176,6 +176,25 @@ Detailed component documentation is available in the `docs` directory:
 
 - [CostStructureForm](docs/CostStructureForm.md) - Cost structure input form
 - [CostDataImport](docs/CostDataImport.md) - Cost data import functionality
+- [Deployment Guide](docs/deployment-guide.md) - Guide for deploying the application
+
+## 🚀 Deployment
+
+This project supports automatic deployment to Netlify via GitHub Actions. A workflow is set up to build and deploy the application whenever changes are pushed to the main branch.
+
+### Required Secrets for Deployment
+
+To enable automatic deployment to Netlify, you need to set up the following GitHub repository secrets:
+
+1. **NETLIFY_AUTH_TOKEN**: 
+   - Generate a personal access token in Netlify: User Settings > Applications > New access token
+   - Add it as a secret in GitHub repository: Settings > Secrets > New repository secret
+
+2. **NETLIFY_SITE_ID**:
+   - Find your site ID in Netlify: Site settings > General > Site details > API ID
+   - Add it as a secret in GitHub repository: Settings > Secrets > New repository secret
+
+For more detailed deployment instructions, please see the [Deployment Guide](docs/deployment-guide.md).
 
 ## ⚠️ Common Issues and Solutions
 
@@ -221,6 +240,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📅 Recent Updates
 
+- Added automatic deployment to Netlify
+- Added comprehensive deployment documentation
 - Completed MVP implementation
 - Implemented CostStructure component for cost analysis
 - Added PDF export functionality for reports and dashboards
