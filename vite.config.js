@@ -4,6 +4,7 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  base: '/dynamic-pricing-optimizer/', // Configure for GitHub Pages deployment
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
