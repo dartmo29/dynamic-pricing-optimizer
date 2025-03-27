@@ -26,7 +26,7 @@ npm install
 npm run dev
 ```
 
-4. Open `http://localhost:5000` in your browser to view the app.
+4. Open `http://localhost:5173` in your browser to view the app.
 
 ## Building for Production
 
@@ -129,7 +129,7 @@ npm run build
 ls -la dist
 
 # Run the production server
-npm run preview -- --host 0.0.0.0 --port 5000
+npm run preview -- --host 0.0.0.0 --port 5173
 ```
 
 ## Configuring Continuous Deployment
